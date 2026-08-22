@@ -1,1 +1,1 @@
-export type View = "observatory" | "workbench" | "anatomy" | "ledger";
+export type View = "observatory" | "workbench" | "ask" | "anatomy" | "ledger";

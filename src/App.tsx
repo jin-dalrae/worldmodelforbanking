@@ -10,6 +10,7 @@ import {
 } from "./engine/types";
 import type { View } from "./nav";
 import { Anatomy } from "./views/Anatomy";
+import { Chat } from "./views/Chat";
 import { Ledger } from "./views/Ledger";
 import { Observatory } from "./views/Observatory";
 import { Workbench } from "./views/Workbench";
@@ -19,7 +20,7 @@ export type { View };
 const N = 1200;
 const MONTHS = 18;
 const SEED = 7;
-const VIEWS: View[] = ["observatory", "workbench", "anatomy", "ledger"];
+const VIEWS: View[] = ["observatory", "workbench", "ask", "anatomy", "ledger"];
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "") as View;
@@ -72,6 +73,7 @@ export function App() {
             [
               ["observatory", "Observatory"],
               ["workbench", "Workbench"],
+              ["ask", "Ask"],
               ["anatomy", "Anatomy"],
               ["ledger", "Ledger"],
             ] as const
@@ -120,6 +122,7 @@ export function App() {
           onCohort={setCohort}
         />
       )}
+      {view === "ask" && <Chat agents={agents} months={MONTHS} macro={macro} seed={SEED} />}
       {view === "anatomy" && <Anatomy />}
       {view === "ledger" && <Ledger result={pair.intervention} />}
       <footer className="footer">

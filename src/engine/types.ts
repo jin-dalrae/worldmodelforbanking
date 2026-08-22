@@ -1,3 +1,48 @@
+export type Tone = "good" | "bad" | "warn";
+
+export type Metric = { label: string; value: string; tone?: Tone };
+
+export type Answer =
+  | {
+      kind: "result";
+      title: string;
+      metrics: Metric[];
+      split?: { label: string; parts: { label: string; value: number; tone: Tone }[] };
+      prose: string;
+      footnote?: string;
+      caveat?: string;
+    }
+  | { kind: "clarify" | "unsupported"; title: string; prose: string; chips: string[] };
+
+export type Category =
+  | "groceries" | "restaurants" | "retail" | "gas" | "health" | "entertainment"
+  | "travel" | "transit" | "subscriptions" | "auto" | "telecom" | "utilities" | "housing";
+
+export type SegmentSplit = {
+  segment: string;
+  households: number;
+  lift: number;
+  gamedShare: number;
+};
+
+export type LaunchResult = {
+  category: Category;
+  bps: number;
+  baseCategorySpend: number;
+  incremental: number;
+  cannibalised: number;
+  gamed: number;
+  lift: number;
+  bonusedVolume: number;
+  rewardCost: number;
+  newInterchange: number;
+  net: number;
+  genuineShare: number;
+  gamedShare: number;
+  segments: SegmentSplit[];
+  breakevenBps: number;
+};
+
 export type Segment = "transactor" | "prime_revolver" | "near_prime" | "subprime" | "gig";
 
 export type Macro = {
@@ -91,6 +136,8 @@ export type HouseholdPath = {
 
 export type SimResult = {
   months: MonthPoint[];
+  /** Total card spend per agent over the horizon, indexed by agent id. */
+  cardSpendByAgent: Map<number, number>;
   narratives: Narrative[];
   txns: Txn[];
   households: HouseholdPath[];

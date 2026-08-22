@@ -12,25 +12,24 @@ export function Observatory({ go }: { go: (v: View) => void }) {
             <em>not the order book.</em>
           </h1>
           <p className="lede">
-            Brokerage world models generate stochastic prices and microstructure. This one generates
-            cash buffers, recurring burn, merchant graphs, and delayed default — so a bank can ask
-            what happens after a policy move, before the losses show up in the quarter.
+            Macro simulators shock GDP and unemployment. This one simulates households, merchants, and
+            rewards — so a marketer can ask whether a new card is used as designed, before it ships.
           </p>
           <div className="cta-row">
-            <button className="cta" onClick={() => go("workbench")}>
-              Open the workbench
+            <button className="cta" onClick={() => go("ask")}>
+              Ask the desk
             </button>
-            <button className="cta ghost" onClick={() => go("anatomy")}>
-              Model anatomy
+            <button className="cta ghost" onClick={() => go("workbench")}>
+              Open the workbench
             </button>
           </div>
         </div>
         <aside className="quote">
           <p>
-            “If we cut this cohort’s credit line by 20% during an inflationary spike, how do default
-            rates, spending displacement, and deposit retention change over 18 months?”
+            “If we publish this amusement-park card, will they really use it at the park — or stack
+            flight miles?”
           </p>
-          <span>Canonical counterfactual · 1,200 synthetic households · client-side Monte Carlo</span>
+          <span>The question a PD/LGD tape cannot take · ask it in English · get a simulation</span>
         </aside>
       </section>
 
@@ -56,6 +55,41 @@ export function Observatory({ go }: { go: (v: View) => void }) {
             and risk-adjusted LTV.
           </p>
         </article>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 16 }}>
+        <h2>Not another quantitative macro simulator</h2>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>CCAR / Moody&apos;s / Oxford / FRB-US</th>
+              <th>This world model</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Unit of simulation</td>
+              <td>GDP, unemployment, CPI, then a PD/LGD vector on a loan tape.</td>
+              <td>Households, cash buffers, MCC, merchants, wallet share.</td>
+            </tr>
+            <tr>
+              <td>The question it can take</td>
+              <td>What happens to charge-offs if unemployment is 8%?</td>
+              <td>If we launch this card, do they use it as designed?</td>
+            </tr>
+            <tr>
+              <td>Who it is for</td>
+              <td>Treasury, capital, model risk — portfolio loss under a supervisory path.</td>
+              <td>Card strategy and marketing — product design, rewards, misuse.</td>
+            </tr>
+            <tr>
+              <td>What it cannot see</td>
+              <td>Amusement-park MCC vs airline MCC. Mileage runners. Category leakage.</td>
+              <td>A full GSIFI capital stack. Use the bank&apos;s CCAR model for that.</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <section className="panel" style={{ marginBottom: 16 }}>

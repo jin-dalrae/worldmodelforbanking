@@ -4,10 +4,8 @@ import { u01 } from "./rng";
 import type { Agent, HouseholdPath, Macro, MonthPoint, Narrative, Policy, SimResult, Txn } from "./types";
 import { NEUTRAL_POLICY } from "./types";
 
-const COST_OF_FUNDS_SPREAD = 0.005;
-const INTERCHANGE = 0.018;
-const RECOVERY = 0.18;
-const DISCOUNT_MONTHLY = 0.12 / 12;
+import { COST_OF_FUNDS_SPREAD, DISCOUNT_MONTHLY, INTERCHANGE, RECOVERY } from "./constants";
+
 const NATURAL_U = 0.042;
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -59,6 +57,7 @@ export function simulate(args: {
   const txns: Txn[] = [];
   const series: MonthPoint[] = [];
   const householdMap = new Map<number, HouseholdPath>();
+  const cardSpendByAgent = new Map<number, number>();
 
   for (const a of agents) {
     if (track.has(a.id)) {
@@ -199,6 +198,7 @@ export function simulate(args: {
       }
 
       const onCard = Math.min(spend * (0.55 + 0.35 * a.walletShare), available);
+      cardSpendByAgent.set(a.id, (cardSpendByAgent.get(a.id) ?? 0) + onCard);
       const onCash = spend - onCard;
       a.balance += onCard;
       a.cash -= onCash;
@@ -401,6 +401,7 @@ export function simulate(args: {
 
   return {
     months: series,
+    cardSpendByAgent,
     narratives: narratives.slice(0, 48),
     txns: txns.slice(0, 240),
     households: [...householdMap.values()],
