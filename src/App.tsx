@@ -63,9 +63,9 @@ export function App() {
       <header className="nav">
         <div className="brand">
           <div className="brand-mark">
-            Fa<em>thom</em>
+            World Model <em>for Banking</em>
           </div>
-          <div className="brand-sub">World model for banking</div>
+          <div className="brand-sub">Retail banking &amp; credit cards</div>
         </div>
         <nav className="tabs">
           {(
@@ -123,7 +123,7 @@ export function App() {
       {view === "anatomy" && <Anatomy />}
       {view === "ledger" && <Ledger result={pair.intervention} />}
       <footer className="footer">
-        <span>Fathom demo · synthetic households only · not a credit decisioning system.</span>
+        <span>Demo · synthetic households only · not a credit decisioning system.</span>
         <a href="https://github.com/jin-dalrae/worldmodelforbanking">github.com/jin-dalrae/worldmodelforbanking</a>
       </footer>
     </div>

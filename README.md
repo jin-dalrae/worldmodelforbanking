@@ -1,6 +1,6 @@
-# Fathom — World Model for Retail Banking
+# World Model for Banking
 
-While brokerage world models simulate prices and order books, **Fathom** simulates household cash flow, credit lines, and payment networks.
+While brokerage world models simulate prices and order books, this one simulates household cash flow, credit lines, and payment networks.
 
 > If we cut this cohort’s credit line by 20% during an inflationary spike, how do default rates, spending displacement, and deposit retention change over 18 months?
 
@@ -22,7 +22,7 @@ Retail banking is a generative process over people, cash, and multi-party paymen
 | CCAR/DFAST models | Regulatory capital under supervisory paths | Portfolio-level; not a 10k-account product experiment |
 | Brokerage world models | Prices, order books, market impact | Wrong state, wrong agents, wrong graph, wrong clock |
 
-The platform thesis (working name **LedgerWorld** in the long PRD) is a governed, bank-hosted simulator of that physics. This repo is the proof of mechanism: the canonical question, an inspectable household tape, and a synthetic ledger.
+The platform thesis in [`docs/prd-platform.md`](docs/prd-platform.md) is a governed, bank-hosted simulator of that physics. This repo is the proof of mechanism: the canonical question, an inspectable household tape, and a synthetic ledger.
 
 ## Demo surfaces
 
@@ -64,7 +64,7 @@ Shocks are **hash-seeded per (agent, month, channel)** so the two arms are a tru
 
 The demo is a calibrated microsimulation — habit spend, cash buffers, delayed default, competitor substitution — not a trained foundation model. That is intentional: inspectable, deterministic, and enough to demonstrate the loop. Learned residual dynamics on bank-hosted data are a later layer, not this bundle.
 
-| Layer | This repository (Fathom demo) | Platform (`docs/prd-ledgerworld.md`) |
+| Layer | This repository (demo) | Platform (`docs/prd-platform.md`) |
 | --- | --- | --- |
 | Dynamics | Calibrated agent-based microsim, hash-seeded shocks | L0 ledger + L1 ABM + L2 event-transformer residual + L3 shocks |
 | Data | Fully synthetic population (seed 7) | Bank-hosted tokenized streams in the customer VPC |
@@ -78,11 +78,11 @@ v1 of the platform is **decision-support simulation**. It is not a closed-loop p
 
 | File | What it is |
 | --- | --- |
-| [`docs/prd.md`](docs/prd.md) | **Fathom** product requirements for this demo: problem, personas, UC-1–UC-5, functional/NFR list, state–action–reward for the browser engine, demo vs. platform, governance, open questions |
-| [`docs/prd-ledgerworld.md`](docs/prd-ledgerworld.md) | **LedgerWorld** PRD + technical design: hybrid kernel (L0–L4), schemas, APIs, Gymnasium, calibration gates, SR 11-7 artifacts, VPC architecture |
+| [`docs/prd.md`](docs/prd.md) | **Demo** product requirements: problem, personas, UC-1–UC-5, functional/NFR list, state–action–reward for the browser engine, demo vs. platform, governance, open questions |
+| [`docs/prd-platform.md`](docs/prd-platform.md) | **Platform** PRD + technical design: hybrid kernel (L0–L4), schemas, APIs, Gymnasium, calibration gates, SR 11-7 artifacts, VPC architecture |
 | [`docs/retail-banking-world-model.html`](docs/retail-banking-world-model.html) | Pitch deck of the same argument (open in a browser) |
 
-Read `docs/prd.md` first if you want to know what this UI is supposed to prove. Read `docs/prd-ledgerworld.md` if you want the system that would sit in a bank VPC.
+Read `docs/prd.md` first if you want to know what this UI is supposed to prove. Read `docs/prd-platform.md` if you want the system that would sit in a bank VPC.
 
 ## Run locally
 
@@ -112,7 +112,7 @@ GitHub Pages builds `dist` from `main` via [`.github/workflows/pages.yml`](.gith
 
 ## Not this
 
-Fathom is **not** a credit decisioning system. Numbers are synthetic. Do not underwrite from the demo. Latent embeddings are not ECOA adverse-action reasons. The simulator does not replace a bank’s CECL or CCAR production models.
+This is **not** a credit decisioning system. Numbers are synthetic. Do not underwrite from the demo. Latent embeddings are not ECOA adverse-action reasons. The simulator does not replace a bank’s CECL or CCAR production models.
 
 ## License
 

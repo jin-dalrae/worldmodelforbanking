@@ -1,9 +1,9 @@
-# LedgerWorld — Product Requirements & Technical Design
+# World Model for Banking — Platform PRD & Technical Design
 
 | Field | Value |
 | --- | --- |
 | **Document** | Product Requirements Document (PRD) + Technical Design |
-| **Product** | LedgerWorld (working name) |
+| **Product** | World Model for Banking |
 | **Author** | Product & Engineering |
 | **Date** | 2026-08-22 |
 | **Status** | Draft |
@@ -19,7 +19,7 @@ This document is both a PRD and a system design. It is written so a founding tea
 
 Retail banks and card issuers can simulate market risk and capital-markets microstructure with mature world models, but they cannot yet ask operational counterfactuals about *people, cash, and payment networks*: *If we cut this cohort’s credit line by 20% during an inflationary spike, how do default rates, spending displacement, and deposit retention change over 18 months?* Existing scorecards, Champion/Challenger tests, and Monte Carlo PD/LGD/EAD engines answer a different question. They score a snapshot or shock a parametric loss vector; they do not generate the event-level life of a household under a new policy.
 
-**LedgerWorld** is a generative world-model platform for retail banking and credit cards. It maintains a state \(S_t\) over consumers, accounts, merchants, and macro climate; applies issuer actions \(A_t\); samples transition dynamics \(P(S_{t+1} \mid S_t, A_t)\); and emits rewards \(R_t\) in dollars (NIM, interchange, credit losses, churn, LTV). v1 is a **decision-support simulator** deployed in the customer’s VPC. It is not an automated credit decisioning engine. Closed-loop production policy from RL agents is an explicitly gated later phase.
+**World Model for Banking** is a generative simulation platform for retail banking and credit cards. It maintains a state \(S_t\) over consumers, accounts, merchants, and macro climate; applies issuer actions \(A_t\); samples transition dynamics \(P(S_{t+1} \mid S_t, A_t)\); and emits rewards \(R_t\) in dollars (NIM, interchange, credit losses, churn, LTV). v1 is a **decision-support simulator** deployed in the customer’s VPC. It is not an automated credit decisioning engine. Closed-loop production policy from RL agents is an explicitly gated later phase.
 
 The platform has four product surfaces: (1) a world-model core, (2) a scenario workbench UI, (3) APIs for simulation, synthetic export, and offline RL training loops, and (4) governance (lineage, fairness constraints, model cards, audit logs). The canonical MVP is a single revolving-card portfolio answering the credit-line counterfactual above with calibrated, auditable traces.
 
@@ -85,7 +85,7 @@ The gap is not “better PD.” The gap is a **calibrated generative simulator o
 
 ### Retail banking vs brokerage world models
 
-| Dimension | Capital markets / brokerage | Retail banking & credit cards (LedgerWorld) |
+| Dimension | Capital markets / brokerage | Retail banking & credit cards (this platform) |
 | --- | --- | --- |
 | **State dynamics** | Fast, high-frequency, continuous prices and limit order books | Discrete, irregular event streams: paychecks, autopsies, retail swipes, minimum payments |
 | **Agent psychology** | Profit-maximizing, game-theoretic, latency-sensitive | Habit-driven, boundedly rational, constrained by life events and liquidity |
@@ -95,7 +95,7 @@ The gap is not “better PD.” The gap is a **calibrated generative simulator o
 | **Primary reward** | PnL, inventory, adverse selection | NIM, interchange, credit loss, churn, LTV |
 | **Regulation** | Market risk, best execution | SR 11-7, ECOA/Reg B, FCRA, GLBA, BSA/AML, CECL, CCAR/DFAST-adjacent |
 
-LedgerWorld is built for the right-hand column. It does not simulate order books.
+World Model for Banking is built for the right-hand column. It does not simulate order books.
 
 ---
 
@@ -118,7 +118,7 @@ See also **Out of Scope**. Explicitly not in v1–v1.5:
 - Using latent embeddings as ECOA adverse-action reasons.
 - Capital-markets, brokerage, market-making, or HFT simulation.
 - Being the system of record for accounts, ledgers, or authorizations.
-- Replacing the bank’s CECL or CCAR production models (LedgerWorld may *inform* overlays; it does not file the FR Y-14).
+- Replacing the bank’s CECL or CCAR production models (World Model for Banking may *inform* overlays; it does not file the FR Y-14).
 - Full deposit-beta / AUM world model as a required MVP surface (hooks only).
 - Real-time authorization scoring in the card network hot path.
 - Consumer-facing products.
@@ -134,7 +134,7 @@ See also **Out of Scope**. Explicitly not in v1–v1.5:
 | **Chief Risk Officer** | Can evidence that line and underwriting policies were simulated under stress and fair-lending constraints before rollout. |
 | **Head of Credit / Card** | Can compare line, APR, and rewards policies on risk-adjusted LTV, not just 30-day spend lift. |
 | **Head of Fraud / AML** | Can attack the detection stack with synthetic rings before criminals do. |
-| **Model Risk Management** | Can inventory LedgerWorld as a simulation/decision-support model with SR 11-7 artifacts and no hidden production decisioning. |
+| **Model Risk Management** | Can inventory World Model for Banking as a simulation/decision-support model with SR 11-7 artifacts and no hidden production decisioning. |
 | **Head of Data Science / Decision Science platforms** | Gets a standard environment, APIs, and synthetic sandboxes so every squad is not building a one-off simulator. |
 
 Primary customer: mid-to-large US banks, card issuers, and fintech lenders. EU/UK hooks (GDPR, PSD2/Open Banking, PRA model risk) are designed in, not implemented first.
@@ -189,11 +189,11 @@ Acceptance criteria are testable. “Given / When / Then” plus numeric gates u
 2. Idiosyncratic shocks (job loss, medical) have intensities that are functions of macro *and* account state; this mapping is versioned and visible in the model card.
 3. Outputs include CECL-like undiscounted and discounted lifetime loss, 9-quarter cumulative net charge-off, and NIM, at portfolio and segment.
 4. A holdout historical crisis window (customer-chosen, e.g. 2020 Q2 or 2008–09 if data exist) can be **backtested**: predicted vs realized segment default and spend curves with published metrics (see Evaluation).
-5. LedgerWorld output is labeled **decision support / overlay research**, not a Y-14 replacement.
+5. World Model for Banking output is labeled **decision support / overlay research**, not a Y-14 replacement.
 
 ### UC-3 — Offline RL for credit risk (P1 environment, P2 production-adjacent)
 
-**Story.** As a decision scientist, I train a policy \(\pi(A \mid S)\) inside LedgerWorld to maximize risk-adjusted LTV subject to loss, fairness, and operational constraints.
+**Story.** As a decision scientist, I train a policy \(\pi(A \mid S)\) inside World Model for Banking to maximize risk-adjusted LTV subject to loss, fairness, and operational constraints.
 
 **Acceptance criteria**
 
@@ -224,7 +224,7 @@ Acceptance criteria are testable. “Given / When / Then” plus numeric gates u
 
 1. Scenario pack API accepts attacker graphs (ring size, mule accounts, time-to-bust-out, merchant collusion).
 2. Generated events remain ledger-consistent (authorizations ≤ open-to-buy unless the attacker action is “bust-out spend”).
-3. Frozen customer detector scores can be loaded via a sidecar interface (`score(events) -> {score, rule_hits}`); LedgerWorld does not require the bank to reimplement rules.
+3. Frozen customer detector scores can be loaded via a sidecar interface (`score(events) -> {score, rule_hits}`); World Model for Banking does not require the bank to reimplement rules.
 4. Report: detection curve, time-to-detect, false-positive incremental decline rate, and substitution (legitimate spend displaced by tighter rules).
 
 ### UC-6 — Rewards steering (P1)
@@ -244,7 +244,7 @@ Priorities: **P0** = MVP (months 0–4), **P1** = months 4–10, **P2** = months
 | ID | Pri | Requirement |
 | --- | --- | --- |
 | FR-001 | P0 | Deploy as a **customer-VPC / bank-hosted** control plane + data plane. Default: bank data never leaves the customer’s cloud account. |
-| FR-002 | P0 | Provide a **synthetic-only sandbox** (vendor- or LedgerWorld-hosted) with public-like synthetic portfolios for demos, CI, and onboarding. |
+| FR-002 | P0 | Provide a **synthetic-only sandbox** (vendor- or platform-hosted) with public-like synthetic portfolios for demos, CI, and onboarding. |
 | FR-003 | P1 | Optional privacy-preserving training: tokenization, cohort-level stats export, DP-SGD on residual models. Never required for MVP calibration on in-VPC data. |
 | FR-004 | P0 | Multi-workspace: `institution / portfolio / environment (dev\|sim\|mr-review)`. No shared-tenancy of raw events across institutions. |
 | FR-005 | P0 | All mutating API calls authenticated (OIDC) and authorized (RBAC): `sim.runner`, `sim.admin`, `data.steward`, `mrm.reviewer`, `synth.exporter`. |
@@ -255,7 +255,7 @@ Priorities: **P0** = MVP (months 0–4), **P1** = months 4–10, **P2** = months
 | --- | --- | --- |
 | FR-010 | P0 | Ingest append-only event bundles: transactions, authorizations (optional), payments, account snapshots, account-status changes, and optional bureau features. Schema: § Data Model. |
 | FR-011 | P0 | Support file drop (Parquet/CSV on object storage) and streaming (Kafka-compatible) later as P1. MVP = Parquet + manifest. |
-| FR-012 | P0 | Customer-controlled tokenization of PAN, account numbers, names, SSNs. LedgerWorld stores only tokens. |
+| FR-012 | P0 | Customer-controlled tokenization of PAN, account numbers, names, SSNs. World Model for Banking stores only tokens. |
 | FR-013 | P0 | Bureau-derived fields tagged `fcra_restricted=true`; they cannot flow into synthetic exports or non-FCRA sandboxes. |
 | FR-014 | P1 | Deposit/DDA events (paychecks, ACH, balances) as first-class state for cash-buffer estimation. MVP may **proxy** cash buffer from card inflows/outflows + stated income if DDA is absent (documented limitation). |
 | FR-015 | P0 | Data-quality report: completeness, identity continuity, balance-reconciliation fail rate, MCC coverage, timezone/currency. Block sim if reconciliation fail rate > 1% unless overridden. |
@@ -361,11 +361,11 @@ Targets unless marked otherwise.
 
 ### World-model loop
 
-LedgerWorld is a controlled stochastic process on a population of accounts and a merchant graph.
+The platform is a controlled stochastic process on a population of accounts and a merchant graph.
 
 ```mermaid
 flowchart TB
-  subgraph World["LedgerWorld kernel"]
+  subgraph World["World-model kernel"]
     S["State S_t\n• Observed ledger: balances, limit, DPD, APR\n• Observed events window\n• Latent: cash buffer, burn, wallet share, intent\n• Macro M_t, merchant graph G"]
     A["Action / Policy A_t\n• Line Δ, APR Δ, rewards, auth tightness\n• Hardship / incentives\n• Constraints C(A,S)"]
     P["Transition P(S_{t+1} | S_t, A_t, M_t)\n1. Policy applied to ledger constraints\n2. Shocks drawn\n3. ABM cash-flow + demand\n4. Residual transformer intensities\n5. Events sampled, ledger posted\n6. Daily close / aging"]
@@ -388,7 +388,7 @@ flowchart TB
 
 ### Hybrid dynamics (buildable now, path to learned world models)
 
-A pure neural world model will not pass SR 11-7 conceptual soundness in 2026 for credit, and will fail OOD on crises absent from the training window. A pure agent-based microsimulation will miss wallet share and residual habit. LedgerWorld uses a **two-layer hybrid** with a documented residual.
+A pure neural world model will not pass SR 11-7 conceptual soundness in 2026 for credit, and will fail OOD on crises absent from the training window. A pure agent-based microsimulation will miss wallet share and residual habit. The kernel uses a **two-layer hybrid** with a documented residual.
 
 | Layer | Role | Family (v1) | Why |
 | --- | --- | --- | --- |
@@ -493,8 +493,8 @@ flowchart TB
     API["API layer\nFastAPI + Pydantic v2\nOIDC / RBAC"]
     Q["Job queue\nRedis / RQ or Temporal"]
     W["Sim workers\nPython · NumPy/JAX ABM\nPyTorch residual (optional GPU)"]
-    CORE["ledgerworld-sim\nL0 ledger · L1 ABM · L2 residual · L3 shocks"]
-    GOV["ledgerworld-gov\nlineage · model cards · audit · fairness"]
+    CORE["wmb-sim\nL0 ledger · L1 ABM · L2 residual · L3 shocks"]
+    GOV["wmb-gov\nlineage · model cards · audit · fairness"]
     PG["Postgres\nmetadata, RBAC, scenarios, inventory\n+ pgvector embeddings"]
     OBJ["Object storage S3/MinIO\nParquet events, traces, checkpoints"]
     DUCK["DuckDB / warehouse\nmetric marts"]
@@ -683,8 +683,8 @@ Normative envelope. Storage is Parquet with the same columns; JSON is the interc
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ledgerworld.dev/schemas/event/v1.json",
-  "title": "LedgerWorldEvent",
+  "$id": "https://worldmodelforbanking.dev/schemas/event/v1.json",
+  "title": "WorldModelEvent",
   "type": "object",
   "required": ["event_id", "event_type", "ts", "account_id", "schema_version"],
   "properties": {
@@ -814,14 +814,14 @@ Terminated accounts: \(R=0\) after charge-off except recoveries; churned account
 
 ## Model Architecture (implementable)
 
-### L0 — Product ledger (`packages/ledgerworld-ledger`)
+### L0 — Product ledger (`packages/wmb-ledger`)
 
 Pure functions, no ML.
 
 - `post_purchase`, `post_payment`, `accrue_interest` (average daily balance or daily compound—product flag), `post_fee`, `cycle_close` (min pay = max(fixed, % of statement, interest+fees)), `age_dpd`, `charge_off` (at 180 dpd default, configurable).
 - Property tests: conservation of funds; min-pay ≥ 0; util in [0, ∞) (overlimit allowed until auth policy).
 
-### L1 — Agent-based household (`packages/ledgerworld-abm`)
+### L1 — Agent-based household (`packages/wmb-abm`)
 
 Per account, daily:
 
@@ -836,7 +836,7 @@ Per account, daily:
 
 Calibration: method of simulated moments + optional EM on mixture types (transactor, convenience revolver, distressed revolver, dormant). Moments: spend, payment, util, 30/60/90, closure, by segment × month.
 
-### L2 — Residual event transformer (`packages/ledgerworld-models`)
+### L2 — Residual event transformer (`packages/wmb-models`)
 
 **Tokenization.** Each event → `{type_id, mcc_id, amt_bucket, dt_bucket, merchant_topk, hod, dow}`. Special tokens: `[DAY]`, `[CYCLE]`, `[MASK]`.
 
@@ -854,13 +854,13 @@ Teacher-forced next-event on history; **scheduled sampling** on 7–28 day rollo
 
 **Runtime coupling.** Batch sim does **not** sample full token sequences for 1M × 100 paths (too slow). Runtime uses the **\(\Delta\lambda\) head + amount residual** on a 7-day grid. Full token sampling is for synthetic export and sampled-trace verbosity.
 
-### L3 — Shocks (`packages/ledgerworld-shocks`)
+### L3 — Shocks (`packages/wmb-shocks`)
 
 Cox / discrete-time logit hazards. Parameters either calibrated or scenario-overridden (e.g., “double job-loss hazard”).
 
-### L4 — Policy (`packages/ledgerworld-policy`)
+### L4 — Policy (`packages/wmb-policy`)
 
-Rule compiler + Gymnasium wrapper `LedgerWorldEnv`.
+Rule compiler + Gymnasium wrapper `WorldModelEnv`.
 
 Observation for MRM-exportable path: `S_obs` only (float vector, documented names). Research path: concat `z_emb`.
 
@@ -877,8 +877,8 @@ Greenfield. Public surface is HTTP/JSON (OpenAPI 3.1) plus Python SDK.
 ### Python SDK (normative signatures)
 
 ```python
-# packages/ledgerworld-sdk/ledgerworld/client.py
-class LedgerWorldClient:
+# packages/wmb-sdk/wmb/client.py
+class WorldModelClient:
     def create_scenario(self, spec: ScenarioSpec) -> Scenario:
         ...
     def run_simulation(self, scenario_id: str, req: SimulationRequest) -> Simulation:
@@ -1096,7 +1096,7 @@ A world model is “right enough” when it is **conditionally calibrated** for 
 
 ### Nature of the model (inventory)
 
-LedgerWorld v1 is a **decision-support / simulation model** (SR 11-7 “model” definition: quantitative method whose outputs inform decisions). It is **not**:
+World Model for Banking v1 is a **decision-support / simulation model** (SR 11-7 “model” definition: quantitative method whose outputs inform decisions). It is **not**:
 
 - a credit score for origination;
 - a bureau;
@@ -1118,20 +1118,20 @@ Customers must list it in **model inventory** with use: “offline simulation of
 
 ### Adverse action (ECOA / Reg B)
 
-**v1 prohibition:** latent embeddings, distress logits, and residual transformer scores **shall not** be used as principal reasons for adverse action. LedgerWorld shall not generate adverse-action notices. If a customer trains a policy in sim that they later productionize in *their* decision engine, that engine is out of scope and must use compliant reason codes from **observable** features.
+**v1 prohibition:** latent embeddings, distress logits, and residual transformer scores **shall not** be used as principal reasons for adverse action. World Model for Banking shall not generate adverse-action notices. If a customer trains a policy in sim that they later productionize in *their* decision engine, that engine is out of scope and must use compliant reason codes from **observable** features.
 
 Policy compiler rejects protected bases: race, color, religion, national origin, sex, marital status, age (with statutory exceptions not modeled here), public-assistance receipt, and typical proxies if the customer flags them.
 
 ### Fairness constraints on optimization (P1+)
 
-- Constraints attach to `LedgerWorldEnv` as `info` and as Lagrangian / projection hooks.
+- Constraints attach to `WorldModelEnv` as `info` and as Lagrangian / projection hooks.
 - Metric is **pluggable**: demographic parity on line decreases, equalized odds on predicted default vs action, or loss-rate parity. **No default “the fairness metric”** — Open Question.
 - Workbench always shows **disparate-impact ratio** on actions and on outcomes *when attributes exist*.
 - Optimization without attributes: constraints on geography/risk-grade only, with a warning.
 
 ### Privacy & synthetic data
 
-- GLBA: customer is the financial institution; LedgerWorld in-VPC is a service provider under their GLBA contract. Default no vendor access to raw.
+- GLBA: customer is the financial institution; World Model for Banking in-VPC is a service provider under their GLBA contract. Default no vendor access to raw.
 - CCPA/CPRA / GDPR-style: no consumer-direct processing; tokens; deletion = drop snapshot + embeddings (traces of sims remain until legal-hold policy).
 - FCRA: bureau features never in synthetic export; never sold.
 - Tests: membership and attribute inference (UC-4).
@@ -1139,7 +1139,7 @@ Policy compiler rejects protected bases: race, color, religion, national origin,
 
 ### AML / BSA
 
-Fraud/AML mode simulates **typologies**, not real persons. Exports of fraud-rich data still PII-free. LedgerWorld does not file SARs.
+Fraud/AML mode simulates **typologies**, not real persons. Exports of fraud-rich data still PII-free. World Model for Banking does not file SARs.
 
 ### Human oversight
 
@@ -1191,7 +1191,7 @@ Encryption at rest (customer KMS), in transit TLS. PAN never stored. Secrets in 
 - **2 design partners** on VPC MVP by month 6; **5** paying or design-partner issuers by month 18 (Open Question: pricing).
 - Time-to-first-counterfactual on a new portfolio: **< 15 business days** after Parquet lands (DQ + calibrate + first UC-1).
 - ≥ **80%** of weekly active users among target personas complete a treatment-vs-control run that MRM can open.
-- NPS / qualitative: CRO/MRM accept inventory of LedgerWorld as simulation model (binary per customer).
+- NPS / qualitative: CRO/MRM accept inventory of World Model for Banking as simulation model (binary per customer).
 
 ### Model quality
 
@@ -1201,7 +1201,7 @@ Encryption at rest (customer KMS), in transit TLS. PAN never stored. Secrets in 
 
 ### Business value (customer-side, leading indicators)
 
-- At least one **line-management or rewards decision** per design partner informed by a LedgerWorld ATT (self-reported).
+- At least one **line-management or rewards decision** per design partner informed by a World Model for Banking ATT (self-reported).
 - Reduction in live Champion/Challenger cycle time for in-scope policies (qualitative).
 - Fraud: at least one detector gap found via UC-5 before a live loss (stretch, P1).
 
@@ -1215,7 +1215,7 @@ Do not claim capital relief or CECL dollar savings in v1 marketing; those requir
 
 ```mermaid
 gantt
-  title LedgerWorld delivery (targets)
+  title Platform delivery (targets)
   dateFormat  YYYY-MM-DD
   axisFormat  %b %Y
   section Foundation
@@ -1349,7 +1349,7 @@ These are unresolved product decisions; the design does not fake-close them.
 7. **Who signs model risk.** Vendor provides evidence; **bank MRM must own acceptance**. Is a third-party validation partner in the motion?
 8. **Macro library licensing.** Custom customer paths only vs licensed supervisory scenarios.
 9. **DP default.** Is ε-DP commercially required for synthetic export, or are attack-tests enough for v1 legal?
-10. **Name.** LedgerWorld vs alternatives (ClearingSim, HouseholdTwin, CardWorld). Trademark screen pending.
+10. **Name.** World Model for Banking vs alternatives (ClearingSim, HouseholdTwin, CardWorld). Trademark screen pending.
 11. **RL research surface in the paid product vs open research env.** Might keep Gymnasium in a separate repo to avoid implying production RL.
 12. **Deposit beta / rate-paid world model** — same kernel or a different product?
 
@@ -1357,7 +1357,7 @@ These are unresolved product decisions; the design does not fake-close them.
 
 ## Key Decisions
 
-1. **Name: LedgerWorld (working).** Communicates accounting identities + world model. Revisit after trademark (Open Question 10).
+1. **Name: World Model for Banking.** Descriptive rather than coined: it says what the system is, and matches the repository. Earlier working names (Fathom, LedgerWorld) are retired. Revisit before any trademark filing (Open Question 10).
 2. **v1 is simulation / decision support only.** No production policy actuation, no adverse action, no `production` status on policies. Rationale: ECOA, SR 11-7, and time-to-trust. RL is an environment consumer, not a launcher.
 3. **Hybrid kernel: frozen L0 ledger + calibrated L1 ABM + L2 event-transformer residual.** Rationale: identities + stress interpretability + data-driven habit; buildable in 4 months without L2, with a path to RSSM later. Rejected pure ABM and pure neural WM for v1.
 4. **Dual-resolution simulation.** Batch: vectorized daily intensities (CPU, 1M×100). High-fidelity: token-level transformer sampling for synthetic export and sampled traces. Rationale: NFR-002 is otherwise infeasible.
@@ -1404,22 +1404,22 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
   Makefile
   .github/workflows/ci.yml
   docs/
-    prd-ledgerworld.md
+    prd-platform.md
     adr/
     mrm/
     openapi/
   packages/
-    ledgerworld-core/             # schemas, types, DSL
-    ledgerworld-ledger/           # L0
-    ledgerworld-abm/              # L1
-    ledgerworld-shocks/
-    ledgerworld-models/           # L2 transformer
-    ledgerworld-sim/              # kernel orchestration
-    ledgerworld-policy/
-    ledgerworld-eval/
-    ledgerworld-synth/
-    ledgerworld-gov/
-    ledgerworld-sdk/
+    wmb-core/             # schemas, types, DSL
+    wmb-ledger/           # L0
+    wmb-abm/              # L1
+    wmb-shocks/
+    wmb-models/           # L2 transformer
+    wmb-sim/              # kernel orchestration
+    wmb-policy/
+    wmb-eval/
+    wmb-synth/
+    wmb-gov/
+    wmb-sdk/
   services/
     api/                          # FastAPI
     worker/
@@ -1435,67 +1435,67 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
 
 ### PR-000 — Bootstrap monorepo and documentation home
 
-- **Files/components:** `README.md`, `pyproject.toml`, `Makefile`, `.gitignore`, `.github/workflows/ci.yml` (lint/test placeholders), `docs/prd-ledgerworld.md` (this document), `docs/adr/0001-hybrid-kernel.md`, `LICENSE`
+- **Files/components:** `README.md`, `pyproject.toml`, `Makefile`, `.gitignore`, `.github/workflows/ci.yml` (lint/test placeholders), `docs/prd-platform.md` (this document), `docs/adr/0001-hybrid-kernel.md`, `LICENSE`
 - **Depends on:** none
 - **Description:** Initialize Python workspace (uv/poetry), package stubs with empty `__init__.py` and `py.typed`, CI running `pytest -q` on a hello test. README states VPC-first, decision-support-only, and how to run the synthetic sandbox (once it exists). No business logic.
 
 ### PR-001 — Core event/state/action/reward schemas
 
-- **Files/components:** `packages/ledgerworld-core/ledgerworld/core/events.py`, `state.py`, `actions.py`, `reward.py`, `ids.py`, `jsonschema/event_v1.json`, `tests/test_schemas.py`
+- **Files/components:** `packages/wmb-core/wmb/core/events.py`, `state.py`, `actions.py`, `reward.py`, `ids.py`, `jsonschema/event_v1.json`, `tests/test_schemas.py`
 - **Depends on:** PR-000
 - **Description:** Pydantic v2 models matching § State / Action / Reward and the JSON Schema above. Serialization to/from Parquet-friendly dicts. Unit tests for extras-forbid, FCRA tag default, action constraint bounds. No simulation.
 
 ### PR-002 — L0 product ledger with property tests
 
-- **Files/components:** `packages/ledgerworld-ledger/ledgerworld/ledger/posting.py`, `interest.py`, `cycle.py`, `dpd.py`, `tests/test_ledger_identities.py`
+- **Files/components:** `packages/wmb-ledger/wmb/ledger/posting.py`, `interest.py`, `cycle.py`, `dpd.py`, `tests/test_ledger_identities.py`
 - **Depends on:** PR-001
 - **Description:** Deterministic posting engine. Hypothesis/property tests: balance identity within $0.01; min-pay non-negative; charge-off at configurable DPD. This is the most important correctness PR; block merge on identity failures.
 
 ### PR-003 — Cohort DSL (predicate AST, not SQL)
 
-- **Files/components:** `packages/ledgerworld-core/ledgerworld/core/cohort_dsl.py`, `tests/test_cohort_dsl.py`
+- **Files/components:** `packages/wmb-core/wmb/core/cohort_dsl.py`, `tests/test_cohort_dsl.py`
 - **Depends on:** PR-001
 - **Description:** Parse a restricted AST (`util >= 0.7 AND revolver_flag AND risk_grade in ...`) into a vectorized NumPy mask. Reject unknown fields and protected-class names unless explicitly enabled by config that default-denies.
 
 ### PR-004 — Policy compiler and prohibited-basis checks
 
-- **Files/components:** `packages/ledgerworld-policy/ledgerworld/policy/compiler.py`, `constraints.py`, `tests/test_policy_compiler.py`
+- **Files/components:** `packages/wmb-policy/wmb/policy/compiler.py`, `constraints.py`, `tests/test_policy_compiler.py`
 - **Depends on:** PR-001, PR-003
 - **Description:** YAML/JSON declarative policies → `Callable[[S_obs], Action]` with projection. Tests that a policy branching on `race` / `sex` fails compile (`422` semantics). No-op and `limit_mult=0.8` goldens.
 
 ### PR-005 — Macro paths and L3 idiosyncratic shocks
 
-- **Files/components:** `packages/ledgerworld-shocks/ledgerworld/shocks/macro.py`, `idiosyncratic.py`, `testdata/macros/illustrative_inflation.json`, `tests/test_shocks.py`
+- **Files/components:** `packages/wmb-shocks/wmb/shocks/macro.py`, `idiosyncratic.py`, `testdata/macros/illustrative_inflation.json`, `tests/test_shocks.py`
 - **Depends on:** PR-001
 - **Description:** Monthly series interpolation to daily; job-loss/medical hazards. Illustrative (non-Fed) inflation spike template used by UC-1. Document that official CCAR paths are customer-supplied.
 
 ### PR-006 — Vectorized L1 ABM daily step
 
-- **Files/components:** `packages/ledgerworld-abm/ledgerworld/abm/household.py`, `choice.py`, `repay.py`, `intensities.py`, `tests/test_abm_step.py`
+- **Files/components:** `packages/wmb-abm/wmb/abm/household.py`, `choice.py`, `repay.py`, `intensities.py`, `tests/test_abm_step.py`
 - **Depends on:** PR-002, PR-005
 - **Description:** Batched daily step for `B` accounts: demand, liquidity compression, nested-logit card choice stub, repayment mixture, churn hazard. Deterministic given RNG keys. Performance smoke: 10k accounts × 30 days in tests (no 1M in CI).
 
 ### PR-007 — Simulation kernel, seeds, traces
 
-- **Files/components:** `packages/ledgerworld-sim/ledgerworld/sim/kernel.py`, `batch.py`, `trace_writer.py`, `rng.py`, `tests/test_replay.py`
+- **Files/components:** `packages/wmb-sim/wmb/sim/kernel.py`, `batch.py`, `trace_writer.py`, `rng.py`, `tests/test_replay.py`
 - **Depends on:** PR-006, PR-004
 - **Description:** Orchestrate L0–L3 for horizon \(H\) and \(K\) paths. Append-only trace writer (aggregates + sampled accounts). Replay test: same seed → identical aggregate checksum on CPU. Trace verbosity flags.
 
 ### PR-008 — Reward components and ATT aggregates
 
-- **Files/components:** `packages/ledgerworld-sim/ledgerworld/sim/reward.py`, `metrics.py`, `packages/ledgerworld-eval/ledgerworld/eval/att.py`, `tests/test_reward.py`
+- **Files/components:** `packages/wmb-sim/wmb/sim/reward.py`, `metrics.py`, `packages/wmb-eval/wmb/eval/att.py`, `tests/test_reward.py`
 - **Depends on:** PR-007
 - **Description:** Implement NIM, interchange (table-driven), loss, churn, rewards, opex; discounting; paired treatment-control ATT with bootstrap CI helper.
 
 ### PR-009 — Synthetic sandbox generator (ABM-only)
 
-- **Files/components:** `packages/ledgerworld-synth/ledgerworld/synth/sandbox.py`, `testdata/synthetic_sandbox/`, `scripts/generate_sandbox.py`, `tests/test_sandbox_dq.py`
+- **Files/components:** `packages/wmb-synth/wmb/synth/sandbox.py`, `testdata/synthetic_sandbox/`, `scripts/generate_sandbox.py`, `tests/test_sandbox_dq.py`
 - **Depends on:** PR-007
 - **Description:** Generate a public-like 20k-account, 18-month Parquet bundle for CI/demo with no real PII. DQ report. This unblocks API/UI without bank data.
 
 ### PR-010 — Calibration / method of simulated moments (minimal)
 
-- **Files/components:** `packages/ledgerworld-eval/ledgerworld/eval/moments.py`, `calibrate.py`, `holdout.py`, `tests/test_moments.py`
+- **Files/components:** `packages/wmb-eval/wmb/eval/moments.py`, `calibrate.py`, `holdout.py`, `tests/test_moments.py`
 - **Depends on:** PR-007, PR-009
 - **Description:** Compute spend/MCC/DPD moments; simple parameter search (L-BFGS or CMA-ES on a small free vector: spend scale, pay mixture, job-loss base hazard). Holdout report JSON matching NFR-005 fields. Do not overfit a huge parameter space in this PR.
 
@@ -1507,19 +1507,19 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
 
 ### PR-012 — Scenario and simulation APIs
 
-- **Files/components:** `services/api/app/routers/scenarios.py`, `simulations.py`, `policies.py`, `services/worker/worker.py`, `packages/ledgerworld-sdk/ledgerworld/client.py`
+- **Files/components:** `services/api/app/routers/scenarios.py`, `simulations.py`, `policies.py`, `services/worker/worker.py`, `packages/wmb-sdk/wmb/client.py`
 - **Depends on:** PR-011, PR-007, PR-004, PR-003
 - **Description:** Implement `create_scenario`, `run_simulation`, `get_simulation`, `fetch_metrics`, `submit_policy` as specified. Redis+RQ worker calling the kernel. `decision_support_only: true` on all responses. Policy status enum without `production`.
 
 ### PR-013 — Governance: audit log, lineage, model card
 
-- **Files/components:** `packages/ledgerworld-gov/ledgerworld/gov/audit.py`, `lineage.py`, `model_card.py`, `services/api/app/routers/governance.py`, `docs/mrm/model-card-template.md`
+- **Files/components:** `packages/wmb-gov/wmb/gov/audit.py`, `lineage.py`, `model_card.py`, `services/api/app/routers/governance.py`, `docs/mrm/model-card-template.md`
 - **Depends on:** PR-012
 - **Description:** Append-only audit table; lineage edges on snapshot/model/policy/sim; model card JSON pinned at run start. MRM reviewer can GET artifacts.
 
 ### PR-014 — Ingest pipeline and data-quality gate
 
-- **Files/components:** `packages/ledgerworld-core/ledgerworld/core/ingest.py`, `dq.py`, `scripts/ingest_parquet.py`, `tests/test_dq.py`
+- **Files/components:** `packages/wmb-core/wmb/core/ingest.py`, `dq.py`, `scripts/ingest_parquet.py`, `tests/test_dq.py`
 - **Depends on:** PR-001, PR-002
 - **Description:** Manifest + Parquet ingest to snapshot; tokenization interface (HMAC key from env/KMS stub); balance reconciliation vs L0; block if fail rate > 1%. FCRA column tagging.
 
@@ -1531,25 +1531,25 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
 
 ### PR-016 — Helm/Terraform VPC slice (dev)
 
-- **Files/components:** `infra/docker/Dockerfile.api`, `Dockerfile.worker`, `Dockerfile.ui`, `infra/helm/ledgerworld/`, `infra/terraform/aws-vpc-slice/` (S3, RDS Postgres, ElastiCache Redis, IAM)
+- **Files/components:** `infra/docker/Dockerfile.api`, `Dockerfile.worker`, `Dockerfile.ui`, `infra/helm/wmb/`, `infra/terraform/aws-vpc-slice/` (S3, RDS Postgres, ElastiCache Redis, IAM)
 - **Depends on:** PR-012, PR-015
 - **Description:** Installable dev chart. Documents customer KMS and “no egress of Parquet.” Not a hardened production baseline.
 
 ### PR-017 — Interactive performance path (10k / 2 min target)
 
-- **Files/components:** `packages/ledgerworld-sim/ledgerworld/sim/fast_path.py`, `bench/bench_10k.py`, CI benchmark (non-gating) 
+- **Files/components:** `packages/wmb-sim/wmb/sim/fast_path.py`, `bench/bench_10k.py`, CI benchmark (non-gating) 
 - **Depends on:** PR-007
 - **Description:** Shard + NumPy (or JAX flag) optimizations, `aggregates_only`, reduced L1 MCC groups. Publish numbers; do not yet claim NFR-002 1M overnight.
 
 ### PR-018 — Evaluation suite wired to CI on sandbox
 
-- **Files/components:** `packages/ledgerworld-eval/ledgerworld/eval/report.py`, `tests/test_holdout_sandbox.py`
+- **Files/components:** `packages/wmb-eval/wmb/eval/report.py`, `tests/test_holdout_sandbox.py`
 - **Depends on:** PR-010, PR-009
 - **Description:** Generate calibration report on synthetic sandbox (sanity, not real-world gates). Fail CI if ledger identities or replay break; warn-only on moment gates for synthetic.
 
 ### PR-019 — Synthetic export API + privacy tests (MVP bar)
 
-- **Files/components:** `packages/ledgerworld-synth/ledgerworld/synth/export.py`, `privacy.py`, `services/api/app/routers/export.py`, `tests/test_privacy_infer.py`
+- **Files/components:** `packages/wmb-synth/wmb/synth/export.py`, `privacy.py`, `services/api/app/routers/export.py`, `tests/test_privacy_infer.py`
 - **Depends on:** PR-012, PR-009, PR-013
 - **Description:** Export Parquet with new IDs; drop FCRA; simple membership-inference attack test on sandbox (may be weak by construction); block + audit on fail. Full attack sophistication is P1 follow-up.
 
@@ -1565,37 +1565,37 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
 
 ### PR-021 — Event tokenizer and transformer encoder (L2)
 
-- **Files/components:** `packages/ledgerworld-models/ledgerworld/models/tokenize.py`, `transformer.py`, `train.py`, `tests/test_tokenize.py`
+- **Files/components:** `packages/wmb-models/wmb/models/tokenize.py`, `transformer.py`, `train.py`, `tests/test_tokenize.py`
 - **Depends on:** PR-001, PR-014
 - **Description:** Tokenization, 6×128 transformer, next-event NLL training loop on sandbox (overfit test). Checkpoint format. Feature-flagged; not default in kernel yet.
 
 ### PR-022 — Residual Δλ coupling into kernel
 
-- **Files/components:** `packages/ledgerworld-sim/ledgerworld/sim/residual.py`, flag `l2_residual`
+- **Files/components:** `packages/wmb-sim/wmb/sim/residual.py`, flag `l2_residual`
 - **Depends on:** PR-021, PR-007
 - **Description:** Apply clipped residual intensities on a 7-day grid. Shrinkage \(\alpha\). Compare L1 vs L1+L2 in eval report.
 
 ### PR-023 — Gymnasium environment
 
-- **Files/components:** `packages/ledgerworld-policy/ledgerworld/policy/gym_env.py`, `tests/test_gym_env.py`
+- **Files/components:** `packages/wmb-policy/wmb/policy/gym_env.py`, `tests/test_gym_env.py`
 - **Depends on:** PR-007, PR-008, PR-004
-- **Description:** `LedgerWorldEnv` with documented `S_obs` vector, weekly actions, composite reward, constraint info. Watermark in `info`. No trainer.
+- **Description:** `WorldModelEnv` with documented `S_obs` vector, weekly actions, composite reward, constraint info. Watermark in `info`. No trainer.
 
 ### PR-024 — Fairness dashboard and pluggable metrics
 
-- **Files/components:** `packages/ledgerworld-gov/ledgerworld/gov/fairness.py`, `services/ui` fairness panel
+- **Files/components:** `packages/wmb-gov/wmb/gov/fairness.py`, `services/ui` fairness panel
 - **Depends on:** PR-013, PR-015
 - **Description:** Disparate-impact ratios on actions/outcomes when attributes present; placeholder metric registry. No chosen “official” metric.
 
 ### PR-025 — Fraud/AML typology packs
 
-- **Files/components:** `packages/ledgerworld-synth/ledgerworld/synth/adversary.py`, `packs/bustout.yaml`, `packs/structuring.yaml`
+- **Files/components:** `packages/wmb-synth/wmb/synth/adversary.py`, `packs/bustout.yaml`, `packs/structuring.yaml`
 - **Depends on:** PR-007
 - **Description:** Inject rings into twins; keep L0 identities; report hooks for sidecar scorer.
 
 ### PR-026 — DDA cash-buffer path
 
-- **Files/components:** `packages/ledgerworld-abm` updates, ingest of DDA events
+- **Files/components:** `packages/wmb-abm` updates, ingest of DDA events
 - **Depends on:** PR-014, PR-006
 - **Description:** When DDA present, replace latent cash_buffer prior with observed. Model card documents both modes.
 
@@ -1607,7 +1607,7 @@ Greenfield bootstrap of `/Users/dalrae/Downloads/Developed/2608-aiforgood`. Each
 
 ### PR-028 — Constrained offline RL research job (P2 start)
 
-- **Files/components:** `packages/ledgerworld-policy/ledgerworld/policy/train_cql.py` (or similar), watermarking
+- **Files/components:** `packages/wmb-policy/wmb/policy/train_cql.py` (or similar), watermarking
 - **Depends on:** PR-023, PR-024
 - **Description:** CQL/IQL trainer writing `proposed_in_sim` artifacts only. Not exposed as “deploy.”
 

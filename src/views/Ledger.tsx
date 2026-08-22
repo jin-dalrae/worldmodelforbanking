@@ -21,7 +21,7 @@ export function Ledger({ result }: { result: SimResult }) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "fathom-synthetic-ledger.json";
+            a.download = "world-model-banking-synthetic-ledger.json";
             a.click();
             URL.revokeObjectURL(url);
           }}

@@ -12,7 +12,7 @@ export function Observatory({ go }: { go: (v: View) => void }) {
             <em>not the order book.</em>
           </h1>
           <p className="lede">
-            Brokerage world models generate stochastic prices and microstructure. Fathom generates
+            Brokerage world models generate stochastic prices and microstructure. This one generates
             cash buffers, recurring burn, merchant graphs, and delayed default — so a bank can ask
             what happens after a policy move, before the losses show up in the quarter.
           </p>

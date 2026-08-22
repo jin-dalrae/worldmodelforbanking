@@ -1,0 +1,387 @@
+<meta charset="utf-8">
+<title>World Model for Banking Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap">
+
+<style>
+:root{
+  --bg:#E7E2D7; --page:#F7F4ED; --panel:#FFFFFF; --panel-2:#F0ECE2;
+  --text:#161D25; --muted:#5D6672; --faint:#8C949E;
+  --line:#D6CFC0; --line-2:#C3BAA8;
+  --amber:#A9670C; --amber-soft:#F3E3C6;
+  --teal:#0F6E62; --teal-soft:#D8ECE7;
+  --red:#A93524;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#070B10; --page:#101821; --panel:#16202B; --panel-2:#1B2734;
+    --text:#E9E5DB; --muted:#95A2B0; --faint:#6C7A88;
+    --line:#243040; --line-2:#31404F;
+    --amber:#E8A33D; --amber-soft:#3A2C15;
+    --teal:#58C4B2; --teal-soft:#14312D;
+    --red:#E0685A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#070B10; --page:#101821; --panel:#16202B; --panel-2:#1B2734;
+  --text:#E9E5DB; --muted:#95A2B0; --faint:#6C7A88;
+  --line:#243040; --line-2:#31404F;
+  --amber:#E8A33D; --amber-soft:#3A2C15;
+  --teal:#58C4B2; --teal-soft:#14312D;
+  --red:#E0685A;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;
+}
+.page{max-width:960px;margin:0 auto;background:var(--page);border-left:1px solid var(--line);border-right:1px solid var(--line);min-height:100vh}
+.inner{padding:0 clamp(22px,5vw,72px)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+
+/* header */
+header{padding:clamp(40px,7vw,76px) 0 30px;border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--amber);font-weight:600;margin-bottom:18px;
+}
+h1{font-size:clamp(34px,5.4vw,52px);line-height:1.05;letter-spacing:-.028em;font-weight:700;margin:0 0 16px;text-wrap:balance}
+.standfirst{font-size:18px;line-height:1.55;color:var(--muted);margin:0;max-width:62ch}
+
+/* contents */
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;padding:22px 0 0}
+nav.toc a{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:2px;padding:7px 11px;background:var(--panel);
+}
+nav.toc a:hover{color:var(--text);border-color:var(--line-2)}
+nav.toc a:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* sections */
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+h2{font-size:27px;line-height:1.15;letter-spacing:-.018em;font-weight:600;margin:0;text-wrap:balance}
+.clock{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--teal);border:1px solid var(--teal);background:var(--teal-soft);border-radius:2px;padding:3px 8px;white-space:nowrap;
+}
+.sec-note{font-size:14.5px;color:var(--muted);margin:0 0 22px;max-width:62ch}
+
+/* the spoken script */
+.script{
+  background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--amber);
+  padding:26px clamp(20px,3.5vw,32px);display:flex;flex-direction:column;gap:16px;
+}
+.script p{margin:0;font-size:17.5px;line-height:1.68;max-width:64ch}
+.script p.lead{font-family:"IBM Plex Serif",Georgia,serif;font-size:20px;line-height:1.5}
+.script b{font-weight:600}
+.cue{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.5;color:var(--teal);
+  letter-spacing:.02em;padding-left:14px;border-left:2px solid var(--teal-soft);
+}
+.beat{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-top:6px;
+}
+
+/* slide-by-slide */
+.slidecard{background:var(--panel);border:1px solid var(--line);padding:20px 24px;display:flex;flex-direction:column;gap:10px}
+.slidecard + .slidecard{margin-top:12px}
+.slidecard .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.slidecard .num{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--amber);font-weight:600;letter-spacing:.12em}
+.slidecard h3{margin:0;font-size:16.5px;font-weight:600;letter-spacing:-.01em}
+.slidecard .secs{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--faint);margin-left:auto;letter-spacing:.1em}
+.slidecard p{margin:0;font-size:15.5px;line-height:1.62;color:var(--text)}
+.slidecard p.say{color:var(--text)}
+.slidecard p.dont{font-size:13.5px;color:var(--muted)}
+.slidecard p.dont b{color:var(--red);font-weight:600}
+
+/* numbers */
+.numbers{border:1px solid var(--line);background:var(--panel);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);font-weight:500;border-bottom:1px solid var(--line-2);
+}
+tbody th{font-weight:500;color:var(--text)}
+tbody td{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:13px;font-variant-numeric:tabular-nums}
+td.d{font-weight:600}
+td.bad{color:var(--red)}
+td.good{color:var(--teal)}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
+tbody tr.tot th,tbody tr.tot td{border-top:1px solid var(--line-2)}
+
+/* q&a */
+.qa{display:flex;flex-direction:column;gap:2px}
+details{background:var(--panel);border:1px solid var(--line);padding:0}
+details + details{margin-top:8px}
+summary{
+  cursor:pointer;padding:14px 18px;font-size:15.5px;font-weight:600;list-style:none;
+  display:flex;gap:12px;align-items:flex-start;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"?";font-family:"IBM Plex Mono",monospace;color:var(--amber);font-size:13px;font-weight:600;padding-top:2px}
+summary:hover{background:var(--panel-2)}
+details[open] summary{border-bottom:1px solid var(--line)}
+details .ans{padding:14px 18px 18px 42px;font-size:15px;line-height:1.62;color:var(--muted)}
+details .ans b{color:var(--text);font-weight:600}
+
+/* misc */
+.callout{
+  background:var(--amber-soft);border:1px solid var(--amber);border-radius:2px;
+  padding:16px 20px;font-size:15px;line-height:1.6;color:var(--text);
+}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.mini{background:var(--panel);border:1px solid var(--line);padding:16px 18px}
+.mini h4{margin:0 0 8px;font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.mini p{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
+footer{padding:34px 0 60px;font-size:13px;color:var(--faint);line-height:1.6}
+footer code{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+</style>
+
+<div class="page">
+<div class="inner">
+
+<header>
+  <div class="eyebrow">Pitch script &middot; World Model for Banking</div>
+  <h1>Cut the line 20%. The simulator says don't.</h1>
+  <p class="standfirst">Everything you need to say, in three lengths. The short versions stand alone; the full script runs the deck and the live demo. All numbers are from the canonical run &mdash; 1,200 households, 18 months, seed 7.</p>
+  <nav class="toc">
+    <a href="#thirty">30 seconds</a>
+    <a href="#two">2 minutes</a>
+    <a href="#full">Full run</a>
+    <a href="#demo">Driving the demo</a>
+    <a href="#numbers">Numbers</a>
+    <a href="#good">The good case</a>
+    <a href="#qa">Hard questions</a>
+  </nav>
+</header>
+
+<!-- ============ 30 SECONDS ============ -->
+<section id="thirty">
+  <div class="sec-head"><h2>The 30-second version</h2><span class="clock">~90 words</span></div>
+  <p class="sec-note">For a hallway, a judge walking past, or the answer to "so what did you build?"</p>
+  <div class="script">
+    <p class="lead">A bank cuts someone's credit limit, then waits six months to find out whether that was the right call. And it only ever learns about the choice it made &mdash; there is no recording of the road not taken.</p>
+    <p>So we built a simulator of the household side of a bank. Twelve hundred synthetic families, real cash-flow mechanics, eighteen months of their lives faster than you can move a slider.</p>
+    <p>We asked it what every credit committee asks in a downturn: <b>what if we cut this group's credit line by twenty percent?</b></p>
+    <p>Defaults barely moved. The people who were going to default still did &mdash; just on a smaller line. But the bank lost <b>a hundred and thirty thousand dollars</b> in revenue and twenty-one more customers walked away.</p>
+    <p>The cut squeezed households, and it didn't even pay for itself. Nobody could have known that without running it.</p>
+  </div>
+</section>
+
+<!-- ============ 2 MINUTES ============ -->
+<section id="two">
+  <div class="sec-head"><h2>The two-minute version</h2><span class="clock">~300 words</span></div>
+  <p class="sec-note">Add the "why doesn't this already exist" beat and the ask. Use when you have a slide or two, or none at all.</p>
+  <div class="script">
+    <p class="lead">Banks are very good at predicting <i>who</i> is risky. They are almost incapable of predicting <i>what happens if they act.</i></p>
+    <p>A credit score ranks people at a moment in time. It is a snapshot, not a movie. When a bank actually changes something &mdash; a limit, a rate, a hardship offer &mdash; the consequences arrive months later, tangled up with the economy, and they only ever see the branch of history they chose.</p>
+    <p>The honest way to find out is to try it on real customers and count the damage. That is what champion-challenger testing is: buying information with other people's money. So the boldest policies never get tested, and the ones that do get tested get tested on people.</p>
+    <div class="cue">[If you have the deck, this is where slide 3 lives &mdash; five mature tools, none of which simulates a household.]</div>
+    <p>We built the missing piece: a <b>world model of retail banking</b>. Not a better score &mdash; a generative simulator of households. Paychecks land, rent goes out, a card gets declined at a grocery store, someone slides into delinquency over ninety days.</p>
+    <p>The design choice that matters: <b>the accounting is hard-coded and only the behavior is learned.</b> Interest, minimum payments, balances &mdash; those obey the arithmetic exactly, because a simulator whose balances drift is one a risk committee throws out on sight. The learning sits on top, in how people behave.</p>
+    <p>It runs today. Twelve hundred households, eighteen months, two futures side by side that share the same random shocks &mdash; same people, same luck, only the policy differs.</p>
+    <p>And the first real answer it gave us was not the one we expected. A twenty percent line cut barely moved defaults, saved sixty-nine thousand in write-offs, and cost a hundred and thirty thousand in lost revenue. <b>Minus forty-nine dollars per household.</b> The intervention destroys value.</p>
+    <p>That is the product: the ability to find that out on a Tuesday afternoon instead of eighteen months and several thousand customers later.</p>
+    <div class="beat">Ask &mdash; adapt to the room</div>
+    <p>We are looking for one card portfolio and one risk team willing to point this at their own data, in their own environment, with nothing leaving the building.</p>
+  </div>
+</section>
+
+<!-- ============ FULL RUN ============ -->
+<section id="full">
+  <div class="sec-head"><h2>The full run</h2><span class="clock">6&ndash;8 min &middot; 10 slides + demo</span></div>
+  <p class="sec-note">One card per slide: the beat to hit, roughly what to say, and the trap to avoid. Press <b>N</b> in the deck for the same notes on screen. Timings assume you spend the demo budget generously &mdash; if you are short, cut slides 6 and 9, never the demo.</p>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">01</span><h3>Open on the idea, not the credentials</h3><span class="secs">0:00 &ndash; 0:40</span></div>
+    <p class="say">"We built a video-game version of a bank's customers." Then immediately make it concrete: press play, watch eighteen months of their money, go back, change one thing the bank does, play it again. Land two guardrails early &mdash; it runs inside the bank's own systems, and it does not make decisions about anyone.</p>
+    <p class="dont"><b>Trap:</b> do not open with architecture or with your team. Nobody has a reason to care yet.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">02</span><h3>The problem, then the question, out loud</h3><span class="secs">0:40 &ndash; 1:40</span></div>
+    <p class="say">Three beats: the answer arrives six months late; the only way to learn is to experiment on customers; and the road not taken was never recorded. Then read the quote on the slide word for word and pause. It is a completely ordinary question and nobody in the building can answer it.</p>
+    <p class="dont"><b>Trap:</b> do not rush the pause. The silence after the question is doing work.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">03</span><h3>Why the existing stack can't</h3><span class="secs">1:40 &ndash; 2:20</span></div>
+    <p class="say">Go across the table fast &mdash; scores are snapshots, live tests are slow and costly, capital models shock a portfolio number and never touch a household, stress models are too aggregated, and the trading-desk simulators are built for prices that move every millisecond. Close with: "we are not trying to build a better credit score."</p>
+    <p class="dont"><b>Trap:</b> do not read five rows aloud. Name two, gesture at the rest.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">04</span><h3>The loop</h3><span class="secs">2:20 &ndash; 3:00</span></div>
+    <p class="say">One simulated day: what is true now, what the bank does, the six things that happen in between, and the dollars that fall out. Then the dashed arrow &mdash; feed it back and repeat about five hundred times, and you have eighteen months.</p>
+    <p class="dont"><b>Trap:</b> the six steps are a rhythm, not a list to enumerate. Ten seconds, not forty.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">05</span><h3>The one engineering idea</h3><span class="secs">3:00 &ndash; 3:50</span></div>
+    <p class="say">"The accounting is hard-coded. Only the behavior is learned." Say why: balances that drift get the whole system thrown out, and the committee would be right. Then point at the tags &mdash; four of five layers are running right now; the learned one is deliberately still on paper, because the plain version already answers the question.</p>
+    <p class="dont"><b>Trap:</b> if the room is non-technical, this is 20 seconds and one sentence. Do not teach the stack.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">06</span><h3>What a score cannot see</h3><span class="secs">3:50 &ndash; 4:30</span></div>
+    <p class="say">Walk the tape: paycheck, rent, groceries &mdash; then an $890 hospital bill and, the next day, a cash advance. That is somebody out of options, and it is visible weeks before a score would blink. Then the decline cascade: most people just pull out a different card, and that is the expensive branch, because from then on that is the card they reach for. You did not lose a sale, you lost the habit.</p>
+    <p class="dont"><b>Trap:</b> cuttable if you are behind. The demo earns more than this slide does.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">07</span><h3>Levers and the scoreboard</h3><span class="secs">4:30 &ndash; 5:00</span></div>
+    <p class="say">Four sliders you can actually drag, and a reward measured in dollars rather than a score. Then the constraint line, which is the part worth caring about: tell a system only to win and it finds ugly ways to win. So the limits go in at the start, and the model's internal read of a person is never allowed to be the reason someone is turned down.</p>
+    <p class="dont"><b>Trap:</b> do not read the formula symbol by symbol.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">08</span><h3>The demo &mdash; and the surprise</h3><span class="secs">5:00 &ndash; 6:30</span></div>
+    <p class="say">Switch to the live app. Set it up in one sentence: same households, same luck, only the policy differs. Run it, then deliver the result as a reversal &mdash; defaults barely move, write-offs fall, revenue falls further, customers leave, and the cohort ends up forty-nine dollars per household worse off. Close the beat with: "there was no way to know that without running it."</p>
+    <p class="dont"><b>Trap:</b> do not narrate the UI. The audience does not need a tour; they need the number.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">09</span><h3>Who wants it</h3><span class="secs">6:30 &ndash; 7:00</span></div>
+    <p class="say">Four jobs, four reasons &mdash; credit, stress testing, the data platform, fraud. The fraud one lands best: invent whole rings of criminals and see whether the detection stack catches them. Then the governance strip, which is what decides whether any of it gets used: a record of who ran what, a label saying advice not decision, and no wire to the system that changes anyone's limit.</p>
+    <p class="dont"><b>Trap:</b> do not linger. This is a breadth slide, thirty seconds.</p>
+  </div>
+
+  <div class="slidecard">
+    <div class="top"><span class="num">10</span><h3>Roadmap, risks, close</h3><span class="secs">7:00 &ndash; 8:00</span></div>
+    <p class="say">Stage one is done &mdash; they just watched it. Then be honest, because it buys more credibility than it costs: the evidence on line cuts is thin, the risk committee may reject the learned layer, and somebody will want to wire this into live decisions before it is ready. Say what you did about each. Then close on the last line: today a bank learns from money it has already lost; we have shown it can learn first.</p>
+    <p class="dont"><b>Trap:</b> do not end on the roadmap. End on the sentence.</p>
+  </div>
+</section>
+
+<!-- ============ DEMO ============ -->
+<section id="demo">
+  <div class="sec-head"><h2>Driving the demo</h2><span class="clock">90 sec</span></div>
+  <p class="sec-note">It opens on the canonical scenario already loaded, so you do not have to set anything up. Hash routes: <span class="mono">#observatory</span>, <span class="mono">#workbench</span>, <span class="mono">#anatomy</span>, <span class="mono">#ledger</span>.</p>
+  <div class="script">
+    <div class="cue">[Open on #workbench. The strip along the top already reads 1,200 households, 18 months, inflation 6.5%, line delta −20%.]</div>
+    <p>"Left rail is the world and the lever. Inflation, unemployment, the fed funds rate &mdash; and underneath, what the bank does. Right now it is set to the question from earlier: cut the line twenty percent into an inflation spike."</p>
+    <div class="cue">[Point at the legend: two colours, baseline and intervention.]</div>
+    <p>"Two futures, running on the same twelve hundred households, with the same random shocks. Same people, same bad luck. The only difference is the policy."</p>
+    <div class="cue">[Point at the default chart &mdash; the two lines sitting almost on top of each other.]</div>
+    <p>"Here is the first surprise. Those two lines are the default rate, and they barely separate. Six point four percent against six point five. The bank cut credit to stop losses, and the people who were going to default still defaulted &mdash; just on a smaller line."</p>
+    <div class="cue">[Move to the KPI tiles on the right, top to bottom.]</div>
+    <p>"Now the cost. Spending drops &mdash; over a million dollars of it leaves the card. Net interest margin falls a hundred and eleven thousand. Churn goes up nearly two points. And down here, the number that settles it: lifetime value per household, minus forty-nine dollars."</p>
+    <div class="cue">[Optional, only if time is comfortable &mdash; drag the cohort selector to Subprime, or tick Hardship program. The whole pair re-runs instantly.]</div>
+    <p>"Every slider re-runs both futures in the browser. No server, no waiting."</p>
+    <div class="cue">[If asked "is this real data?" &mdash; go to #ledger and show the event stream and the JSON export.]</div>
+    <p>"Tracked households emit their real transaction events &mdash; swipes, declines, payments. All synthetic, no PII, exportable. That is how you give a fraud team realistic data without handing them anyone's actual bank records."</p>
+  </div>
+</section>
+
+<!-- ============ NUMBERS ============ -->
+<section id="numbers">
+  <div class="sec-head"><h2>Numbers you must not get wrong</h2></div>
+  <p class="sec-note">Canonical run: 1,200 synthetic households, 18 months, CPI +6.5%, unemployment 6.8%, fed funds 4.75%, credit line &times;0.80, seed 7.</p>
+  <div class="numbers">
+    <table>
+      <thead><tr><th>18-month outcome</th><th>Baseline</th><th>&minus;20% line</th><th>&Delta;</th></tr></thead>
+      <tbody>
+        <tr><th>Default rate</th><td>6.4%</td><td>6.5%</td><td class="d bad">+0.1pp</td></tr>
+        <tr><th>Defaults (households)</th><td>77</td><td>78</td><td class="d bad">+1</td></tr>
+        <tr><th>Charge-offs</th><td>$436.6k</td><td>$367.7k</td><td class="d good">&minus;$68.8k</td></tr>
+        <tr><th>Net interest margin</th><td>$633.6k</td><td>$522.1k</td><td class="d bad">&minus;$111.5k</td></tr>
+        <tr><th>Interchange</th><td>$183.3k</td><td>$164.4k</td><td class="d bad">&minus;$18.9k</td></tr>
+        <tr><th>Card spend</th><td>$13.45M</td><td>$12.28M</td><td class="d bad">&minus;$1.17M</td></tr>
+        <tr><th>Deposit stock</th><td>$9.02M</td><td>$9.77M</td><td class="d good">+8.3%</td></tr>
+        <tr><th>Churn</th><td>14.1%</td><td>15.8%</td><td class="d bad">+1.7pp</td></tr>
+        <tr><th>Churned households</th><td>169</td><td>190</td><td class="d bad">+21</td></tr>
+        <tr class="tot"><th>LTV per household</th><td>$298</td><td>$249</td><td class="d bad">&minus;$49</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="mini">
+      <h4>The one-line arithmetic</h4>
+      <p>Saves <b>$68.8k</b> in credit losses. Gives up <b>$130.4k</b> in revenue &mdash; $111.5k of margin plus $18.9k of interchange. Net: the cut loses money.</p>
+    </div>
+    <div class="mini">
+      <h4>Why deposits go up</h4>
+      <p>Households with a thinner line hold a bigger cash buffer. It looks like a win, and it is the smallest one on the board.</p>
+    </div>
+    <div class="mini">
+      <h4>If someone checks your math</h4>
+      <p>Run <span class="mono">npx tsx src/engine/check.ts</span>. It prints these figures and asserts the direction of the effect.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GOOD ============ -->
+<section id="good">
+  <div class="sec-head"><h2>The good case, if the room asks for it</h2></div>
+  <p class="sec-note">Do not lead with this &mdash; it lands far harder after the number. But have it ready, and keep it concrete.</p>
+  <div class="script">
+    <p>Credit tightening in a downturn falls hardest on the households with the least buffer, and today it is done largely on instinct, then validated after the damage has already landed on real people.</p>
+    <p>What this changes is the order of events. The harm becomes visible <b>before</b> it is inflicted, in the same units the bank already uses to make the decision.</p>
+    <p>And in the case we ran, the humane answer and the profitable answer are the same answer. Squeezing people who are already thin does not prevent the defaults &mdash; it just moves the same losses onto a smaller line while the customer quietly leaves. That alignment is the argument. You are not asking a bank to be generous; you are showing it that the harsher policy is also the expensive one.</p>
+    <p>Three things we built in rather than bolted on: it is <b>decision support</b>, with no connection to any system that changes an individual's limit; the model's internal read of a person is never a permitted reason to decline anyone; and the synthetic data means fraud and fairness research can happen without exposing a single real person's financial records.</p>
+  </div>
+</section>
+
+<!-- ============ Q&A ============ -->
+<section id="qa">
+  <div class="sec-head"><h2>Hard questions</h2></div>
+  <p class="sec-note">The eight you should expect. The first two decide whether a serious person keeps listening.</p>
+  <div class="qa">
+
+    <details>
+      <summary>How do you know the simulation is right?</summary>
+      <div class="ans">Say the honest thing first: <b>right now we have validated the mechanism, not the magnitudes.</b> The accounting is exact and tested to the cent, the behavioral rules are hand-calibrated and written down, and the direction of the headline effect is asserted by a check that ships with the code. What we have not done is calibrate against a real portfolio &mdash; that is the first thing that happens with a design partner, and until it does, the honest output is a range and a direction, not a forecast. That is also why nothing ships straight from simulation to production.</div>
+    </details>
+
+    <details>
+      <summary>Isn't this just a Monte Carlo credit model with extra steps?</summary>
+      <div class="ans">No, and the difference is the whole point. A Monte Carlo credit model samples from a calibrated loss distribution &mdash; independent draws against a portfolio. It has no household in it, so it cannot tell you where the <b>spending</b> went when a limit got cut, or that the customer moved top-of-wallet to a competitor, or that deposits rose because people got scared. Every number on the right-hand side of that table except charge-offs is invisible to a PD/LGD engine.</div>
+    </details>
+
+    <details>
+      <summary>Why not just train one big model on transaction data?</summary>
+      <div class="ans">Because a next-event model will happily generate a balance that ignores the credit limit, or statement math that does not add up, or a default with no ninety-day lag in front of it. When balances drift, model risk rejects the system, and they are right to. So the ledger stays deterministic and the learned component sits on top as a correction to <b>behavior</b>. That is not a compromise; it is the thing that makes it approvable.</div>
+    </details>
+
+    <details>
+      <summary>What stops a bank using this to justify harming customers?</summary>
+      <div class="ans">Structurally: there is no write path to account management, no production status in the API, and it is in the contract. Practically: the constraints live inside the optimizer rather than in a review afterwards, and latent embeddings are barred from being adverse-action reasons. And in the case we just showed, the tool argued <b>against</b> the harmful policy on the bank's own terms &mdash; which is worth more than any promise we could make about intent.</div>
+    </details>
+
+    <details>
+      <summary>Does this replace CECL or CCAR models?</summary>
+      <div class="ans">No, and we will not let it be sold that way. Those are regulated production models with filing obligations. This is decision support that may <i>inform</i> an overlay. There is no supervisory export format in v1, deliberately.</div>
+    </details>
+
+    <details>
+      <summary>Where does the data come from, and does it leave the bank?</summary>
+      <div class="ans">Today it is fully synthetic &mdash; the demo generates its own population from a seed, so there is nothing to leak. In deployment the model runs inside the customer's own environment on tokenized event streams, and raw data never leaves. The synthetic export exists so vendors and internal teams can work on realistic data without an access review.</div>
+    </details>
+
+    <details>
+      <summary>Twelve hundred households is not a portfolio.</summary>
+      <div class="ans">Correct &mdash; it is a proof of mechanism that runs in a browser tab with no server. The design target is ten thousand accounts interactively and a million overnight; getting there is exactly what the next stage is for. The reason to show you twelve hundred is that you can watch it re-run while you move a slider.</div>
+    </details>
+
+    <details>
+      <summary>What's the business model?</summary>
+      <div class="ans">Be straight: pricing is still an open question in the PRD. The shape is a platform deployed per-institution inside their environment, and the first commitment we want is not a cheque but one card portfolio and one risk team willing to point it at their own data.</div>
+    </details>
+
+  </div>
+</section>
+
+<footer>
+  Numbers verified against <code>src/engine/check.ts</code> on the canonical scenario (seed 7). Deck: <code>docs/retail-banking-world-model.html</code> &mdash; press <b>N</b> for speaker notes, <b>O</b> for contents. Demo: <code>npm run dev</code>, or the published build. Synthetic data throughout; not a credit decisioning system.
+</footer>
+
+</div>
+</div>

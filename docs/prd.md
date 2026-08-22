@@ -1,8 +1,8 @@
-# PRD: Fathom — A World Model for Retail Banking & Credit Cards
+# PRD: World Model for Banking — Demo
 
 | Field | Value |
 | --- | --- |
-| Product | Fathom (repo: `worldmodelforbanking`) |
+| Product | World Model for Banking (repo: `worldmodelforbanking`) |
 | Document type | Product Requirements Document |
 | Status | Draft |
 | Date | 2026-08-22 |
@@ -28,7 +28,7 @@ Today’s stack cannot answer the question a credit executive actually asks:
 | Monte Carlo credit models | Sample from calibrated PD/LGD | Independent draws; no household cash engine; no merchant substitution |
 | Brokerage world models | Prices, order books, impact | Wrong state, wrong agents, wrong graphs, wrong timescale |
 
-Fathom is a **generative simulator of the financial lifecycle**: a world model whose state is household liquidity, whose actions are issuer policies, and whose rewards are NIM, interchange, losses, churn, and LTV.
+World Model for Banking is a **generative simulator of the financial lifecycle**: a world model whose state is household liquidity, whose actions are issuer policies, and whose rewards are NIM, interchange, losses, churn, and LTV.
 
 ---
 
