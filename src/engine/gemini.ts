@@ -13,7 +13,8 @@
  */
 
 const KEY_STORE = "wmb.gemini.key";
-const MODEL = "gemini-2.0-flash";
+// Verified against the models list for this project. gemini-2.0-flash is retired.
+const MODEL = "gemini-2.5-flash";
 
 /** A proxy endpoint that holds the key server-side. Preferred for anything deployed. */
 const PROXY: string | undefined = import.meta.env?.VITE_GEMINI_PROXY;
@@ -57,12 +58,10 @@ async function call(body: unknown): Promise<string | null> {
 
   if (PROXY) {
     url = PROXY;
-  } else if (key.startsWith("AIza")) {
-    url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
   } else if (key) {
-    // OAuth-style token
-    url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-    headers.Authorization = `Bearer ${key}`;
+    // Generative Language keys authenticate on the query string; Bearer is for OAuth
+    // service credentials, which this endpoint rejects for browser callers.
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
   } else {
     return null;
   }
@@ -79,8 +78,13 @@ async function call(body: unknown): Promise<string | null> {
     clearTimeout(timer);
     if (!res.ok) return null;
     const json = await res.json();
-    const text: unknown = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return typeof text === "string" ? text : null;
+    const parts: unknown = json?.candidates?.[0]?.content?.parts;
+    if (!Array.isArray(parts)) return null;
+    const text = parts
+      .map((p) => (typeof p?.text === "string" ? p.text : ""))
+      .join("")
+      .trim();
+    return text || null;
   } catch {
     return null;
   }
@@ -101,7 +105,7 @@ Question: `;
 export async function parseQuestion(q: string): Promise<ScenarioSpec | null> {
   const text = await call({
     contents: [{ parts: [{ text: PARSE_PROMPT + JSON.stringify(q) }] }],
-    generationConfig: { temperature: 0, maxOutputTokens: 220, responseMimeType: "application/json" },
+    generationConfig: { temperature: 0, maxOutputTokens: 2048, responseMimeType: "application/json" },
   });
   if (!text) return null;
   try {
@@ -129,8 +133,9 @@ export async function narrate(args: {
         parts: [
           {
             text: `You explain simulation output to a bank strategist or marketer.
-Write 2-4 sentences of plain English answering the question directly.
-Absolute rules: use ONLY the figures listed below; never invent, round differently, or add any number that is not listed; no bullet points; no preamble; no markdown.
+Answer THEIR question in the first sentence, plainly — if they asked whether a product will be used as intended, say yes or no before anything else.
+Then 2-3 more sentences on why, and what to do about it.
+Absolute rules: use ONLY the figures listed below; never invent, round differently, or add any number that is not listed; do not restate every figure, pick the ones that carry the argument; no bullet points; no preamble; no markdown; do not begin with "The simulation".
 If the figures show the policy loses money, say so plainly.
 
 Question: ${args.question}
@@ -141,7 +146,7 @@ ${args.facts.map((f) => `- ${f}`).join("\n")}`,
         ],
       },
     ],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 320 },
+    generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
   });
   return text?.trim() || args.fallback;
 }

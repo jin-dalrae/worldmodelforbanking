@@ -111,13 +111,23 @@ State (S_t)                 Action / Policy (A_t)
 
 ## 6. Use cases & acceptance criteria
 
-**UC-1 Canonical counterfactual (P0).** User sets inflation, unemployment, and a −20% line cut. System compares baseline policy vs. intervention on the same households and shocks over 18 months. Acceptance: default rate, displaced spend, and deposit stock each move in a documented direction; household tape explains a sample of paths.
+**UC-1 Canonical counterfactual (P0).** User sets inflation, unemployment, and a −20% line cut. System compares baseline policy vs. intervention on the same households and shocks over 18 months. Acceptance: the run reports the **paired** effect on default rate, displaced spend, deposits, NIM and LTV as p10/p50/p90 over K ≥ 20 shock draws; any effect whose interval contains zero is labelled unresolved rather than quoted; the household tape explains a sample of paths.
+
+On the reference book this bites immediately: the default effect of a −20% cut spans −0.42pp to +0.33pp and is **not measurable**, while LTV per household (−$61 to −$21) and NIM (−$115k to −$106k) are. Reporting "+0.1pp default" as a finding would be an artefact of a single seed.
+
+**UC-1b Policy search (P0).** From the same scenario, sweep the credit-line lever across its range and report LTV per household at each setting with the optimum marked. Acceptance: the sweep identifies a setting at least as good as no-change, and the interface states where the current setting sits relative to it.
 
 **UC-2 Stress testing (P0).** User specifies a stagflation path and reads capital-relevant loss and NIM. Acceptance: monthly 30+/90+ and charge-off curves exportable.
 
 **UC-3 Offline policy search (P1).** Constraint-aware search over line/APR/hardship. Acceptance: no policy that breaches configured loss, fairness, or utilization caps is marked feasible.
 
 **UC-4 Synthetic ledger (P0).** Export JSON/CSV of swipe, decline, payment events with MCC and amounts. Acceptance: no real PII; names are sampled labels.
+
+**UC-6 Product launch and misuse (P0).** A rewards manager asks whether a category bonus — a co-brand launch, a category multiplier — will be used as intended. System reports the lift in bonused-category volume split into genuinely incremental, cannibalised from other categories, and gamed, plus which segments game hardest and whether interchange on genuinely new spend covers the reward. Acceptance: the split sums to the lift; the answer names a break-even bonus level or states that none exists; the caveat lists what is not funded in the model (annual fees, merchant-funded offers).
+
+*This is the use case a macro simulator cannot express at all: it has no merchant, no category and no one in it who is trying to farm the reward.*
+
+**UC-7 Ask (P0).** A strategist or marketer asks in English and gets an answer computed by a simulation run. Acceptance: in-scope questions resolve to a scenario the engine contains; out-of-scope questions are declined with what the model does contain; no figure in any answer originates outside a run.
 
 **UC-5 Adversarial AML (P2).** Inject synthetic structuring rings into the merchant graph. Acceptance: a held-out rule engine misses at least one injected typology that the workbench flags.
 
@@ -138,6 +148,15 @@ State (S_t)                 Action / Policy (A_t)
 | FR-009 | P1 | Fairness constraint evaluator on policy search |
 | FR-010 | P2 | Learned residual dynamics on top of the microsimulator |
 | FR-011 | P2 | Bank-hosted connector for tokenized transaction streams |
+| FR-012 | **P0** | **Monte Carlo over shock draws.** Every scenario runs K ≥ 20 paths. The population is held fixed; the seed feeding per-household, per-month shock streams varies. Both arms of a path share their draws. |
+| FR-013 | **P0** | **Paired treatment effect with intervals.** Report the p10/p50/p90 of the *difference* between arms, not the difference of two point estimates. Charts carry a p10–p90 band; the drawn line is the named seed so a quoted figure stays reproducible. |
+| FR-014 | **P0** | **Refuse unresolved effects.** Where the p10–p90 interval of an effect contains zero, the interface prints *inside the noise* and the interval, never a point estimate. This applies to chat answers as well as tiles. |
+| FR-015 | **P0** | **Policy search over a lever.** Sweep the credit line across its range, report risk-adjusted LTV per household at each setting, and mark the optimum. Evaluating one policy is not the job; finding the best one is. |
+| FR-016 | **P0** | **Category-level reward action space.** A bonus on a named merchant category (co-brand launch, category multiplier), not only a flat cashback rate. |
+| FR-017 | **P0** | **Reward-seeking behaviour.** Households differ in how hard they work a rewards programme. Lift in a bonused category splits into genuinely incremental, cannibalised from other categories, and gamed (no underlying need). Report the split and which segments game hardest. |
+| FR-018 | **P0** | **Natural-language query surface.** A strategist or marketer asks in English; the question selects a scenario the engine contains and the engine answers. Out-of-scope questions are declined, not guessed. |
+| FR-019 | P1 | **Optional LLM bridge, bounded.** A language model may parse the question and word the reply. It must never produce, alter or re-round a figure. Every number originates in a simulation run. The product must remain fully functional with the bridge disconnected. |
+| FR-020 | P1 | Small-cohort warning when a filtered cohort is too thin for effects to resolve |
 
 ---
 
@@ -162,7 +181,9 @@ State (S_t)                 Action / Policy (A_t)
 
 **Latent / demo-implied.** Risk residual, habit spend, substitution propensity. Production: transformer embedding over raw events.
 
-**Actions.** `limitDelta`, `aprDelta`, `cashbackBps`, `hardship`. Later: authorization strategy, balance-transfer offers, category multipliers.
+**Actions.** `limitDelta`, `aprDelta`, `cashbackBps`, `hardship`, and a **category reward** (`{category, bps}`) covering co-brand launches and category multipliers. Later: authorization strategy, balance-transfer offers.
+
+Retail banking's live decisions are product decisions as much as risk decisions. An action space that only moves limits and rates cannot take the question a rewards manager actually has, which is whether a launch will be used as intended.
 
 **Reward (monthly, then discounted at 12% annual):**
 
@@ -176,9 +197,11 @@ NIM = interest − (fed funds + 50 bps) × receivables. Interchange ≈ 1.8% of 
 
 | Layer | This repository (demo) | Platform (subsequent PRs) |
 | --- | --- | --- |
-| Dynamics | Calibrated agent-based microsim, hash-seeded shocks | Microsim + learned residual / event generator |
+| Dynamics | Calibrated agent-based microsim, hash-seeded shocks, reward-seeking behaviour | Microsim + learned residual / event generator |
+| Uncertainty | 24 shock draws; paired effect intervals; effects that straddle zero are declared unresolved | Parameter posterior as well as shock draws; intervals that widen honestly under estimation error |
+| Search | Single-lever sweep with the optimum marked | Constrained policy search over the full action space |
 | Data | Fully synthetic population | Bank-hosted tokenized streams |
-| Interface | Single-page workbench | Scenario API, MRM console, policy search |
+| Interface | Single-page workbench plus a natural-language Ask surface | Scenario API, MRM console, policy search |
 | Governance | Disclaimer + seed | Lineage, fairness gates, model cards |
 
 The demo is the product’s proof of mechanism: the canonical counterfactual, inspectable household tape, and synthetic ledger.
@@ -212,6 +235,9 @@ The demo is the product’s proof of mechanism: the canonical counterfactual, in
 | Fair lending exposure if embeddings leak into decisions | High | Hard separation: sim ≠ decisioning in v1 |
 | Shock RNG leaks across arms | Medium | Hash streams per (agent, month, channel) |
 | Competitor substitution under-specified | Medium | Explicit decline → wallet-share channel |
+| **Behavioural parameters are asserted, not estimated** | **High** | Every hazard and choice coefficient in the engine is hand-set. Bands therefore cover shock noise only, not estimation error, and are narrower than the truth. State this wherever intervals are shown; fitting to a real portfolio is the first task with a design partner. |
+| **Survivorship artefact in reported rates** | Medium | Churned and defaulted households leave the active pool, so a policy that drives attrition can *lower* a measured rate without helping anyone — raising APR does exactly this on the reference book. Read rate effects alongside the churn effect, never alone. |
+| Single-seed reporting mistaken for a finding | High | Paired intervals are mandatory (FR-013); the interface refuses point estimates for unresolved effects (FR-014) |
 
 ---
 
@@ -225,6 +251,8 @@ The demo is the product’s proof of mechanism: the canonical counterfactual, in
 ---
 
 ## 15. Key decisions
+
+0. **Uncertainty is constitutive, not a feature.** A world model that returns a point estimate is a calculator. The unit of output is a distribution over futures, and the unit of *evidence* is the paired difference between arms sharing the same shocks. An effect whose interval straddles zero has not been measured, however precise the single-path number looks.
 
 1. **Hybrid world model** — start with a calibrated microsimulator (shippable, inspectable), leave a slot for learned residuals. Pure end-to-end transformers are uncalibratable for MRM on day one.
 2. **Shared-shock counterfactuals** — hash RNG so arms differ only by policy.

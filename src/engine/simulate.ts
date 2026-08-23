@@ -327,7 +327,11 @@ export function simulate(args: {
         const tickets = 1 + Math.floor(dTicket * 3);
         for (let k = 0; k < tickets; k++) {
           const merch = pickMerchant(seed, a.id, m, 3 + k);
-          const slice = spend / tickets;
+          // Size the ticket around the merchant's typical basket rather than
+          // splitting the month evenly, so an exported ledger reads like a
+          // statement instead of a spreadsheet.
+          const jitter = 0.55 + 1.1 * u01(seed, a.id, m, 70 + k);
+          const slice = Math.min(spend, Math.max(3, merch.ticket * jitter));
           txns.push({
             id: `t${txnN++}`,
             month: m,

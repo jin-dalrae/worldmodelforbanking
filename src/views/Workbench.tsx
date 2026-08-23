@@ -1,6 +1,25 @@
-import { LineChart } from "../components/Chart";
+import { LineChart, SweepChart } from "../components/Chart";
 import { pct, pp, usd } from "../engine/format";
+import { atHorizon, band, effect } from "../engine/paths";
+import type { Effect, PathPair, SweepPoint } from "../engine/paths";
 import type { Macro, Policy, SimResult } from "../engine/types";
+
+/** An effect the model cannot resolve is shown as such, not as a number. */
+function EffectDelta({ e, fmt, goodWhenNegative = false }: { e: Effect; fmt: (n: number) => string; goodWhenNegative?: boolean }) {
+  if (!e.robust) {
+    return (
+      <div className="delta noise" title={`p10 ${fmt(e.p10)} · p90 ${fmt(e.p90)}`}>
+        inside the noise · {fmt(e.p10)} to {fmt(e.p90)}
+      </div>
+    );
+  }
+  const good = goodWhenNegative ? e.p50 < 0 : e.p50 > 0;
+  return (
+    <div className={`delta ${good ? "good" : "bad"}`}>
+      {fmt(e.p50)} <span className="rng">({fmt(e.p10)} to {fmt(e.p90)})</span>
+    </div>
+  );
+}
 
 type Cohort = "all" | "transactor" | "prime_revolver" | "near_prime" | "subprime" | "gig";
 
@@ -12,6 +31,9 @@ export function Workbench({
   months,
   baseline,
   intervention,
+  paths,
+  sweep,
+  pathCount,
   onMacro,
   onPolicy,
   onCohort,
@@ -23,6 +45,9 @@ export function Workbench({
   months: number;
   baseline: SimResult;
   intervention: SimResult;
+  paths: PathPair | null;
+  sweep: { points: SweepPoint[]; best: SweepPoint; current: number } | null;
+  pathCount: number;
   onMacro: (m: Macro) => void;
   onPolicy: (p: Policy) => void;
   onCohort: (c: Cohort) => void;
@@ -32,6 +57,25 @@ export function Workbench({
   const lastB = baseline.months.at(-1);
   const lastI = intervention.months.at(-1);
   const depDelta = (i.depositsEnd - b.depositsEnd) / Math.max(1, b.depositsEnd);
+
+  const bands = paths
+    ? {
+        default: { baseline: band(paths.baseline.runs, (m) => m.defaultRate), intervention: band(paths.intervention.runs, (m) => m.defaultRate) },
+        spend: { baseline: band(paths.baseline.runs, (m) => m.spend), intervention: band(paths.intervention.runs, (m) => m.spend) },
+        deposits: { baseline: band(paths.baseline.runs, (m) => m.deposits), intervention: band(paths.intervention.runs, (m) => m.deposits) },
+      }
+    : undefined;
+
+  const eff = paths
+    ? {
+        default: effect(paths, atHorizon((m) => m.defaultRate)),
+        ltv: effect(paths, atHorizon((m) => m.ltv)),
+        nim: effect(paths, (r) => r.totals.nim),
+        chargeOffs: effect(paths, (r) => r.totals.chargeOffs),
+        churn: effect(paths, atHorizon((m) => m.churnRate)),
+        displaced: effect(paths, (r) => r.totals.displaced),
+      }
+    : null;
 
   return (
     <div className="view workbench">
@@ -129,9 +173,15 @@ export function Workbench({
         <p className="muted" style={{ fontSize: 12 }}>
           Horizon {months} months · baseline policy is unchanged lines/APR.
         </p>
+        {n < 120 && (
+          <p className="warn-note">
+            Only {n} households in this cohort. Effects will often be indistinguishable from noise.
+          </p>
+        )}
       </aside>
 
       <section>
+        <h2 className="sr-heading">Counterfactual workbench</h2>
         <div className="legend">
           <span>
             <i className="swatch base" /> Baseline policy
@@ -139,12 +189,16 @@ export function Workbench({
           <span>
             <i className="swatch int" /> Intervention
           </span>
+          <span className="legend-note">
+            {pathCount > 1 ? `line = seed 7 · band = p10–p90 over ${pathCount} shock draws` : "single path"}
+          </span>
         </div>
         <div className="panel" style={{ marginBottom: 12 }}>
           <h3>Cumulative default rate</h3>
           <div className="chart-wrap">
             <LineChart
               format="pct"
+              bands={bands?.default}
               series={{
                 baseline: baseline.months.map((m) => m.defaultRate),
                 intervention: intervention.months.map((m) => m.defaultRate),
@@ -157,6 +211,7 @@ export function Workbench({
             <h3>Card spend</h3>
             <div className="chart-wrap">
               <LineChart
+                bands={bands?.spend}
                 series={{
                   baseline: baseline.months.map((m) => m.spend),
                   intervention: intervention.months.map((m) => m.spend),
@@ -168,6 +223,7 @@ export function Workbench({
             <h3>Deposit stock</h3>
             <div className="chart-wrap">
               <LineChart
+                bands={bands?.deposits}
                 series={{
                   baseline: baseline.months.map((m) => m.deposits),
                   intervention: intervention.months.map((m) => m.deposits),
@@ -176,6 +232,22 @@ export function Workbench({
             </div>
           </div>
         </div>
+        {sweep && (
+          <div className="panel" style={{ marginBottom: 12 }}>
+            <h3>Where the optimum actually sits</h3>
+            <p className="muted" style={{ fontSize: 13, margin: "0 0 6px" }}>
+              Risk-adjusted lifetime value per household at every setting of the credit-line lever.
+              The dashed line is where you are now.
+            </p>
+            <div className="chart-wrap">
+              <SweepChart points={sweep.points} best={sweep.best} current={sweep.current} />
+            </div>
+            <p className="muted" style={{ fontSize: 13, margin: "6px 0 0" }}>
+              Best at <b>{Math.round(sweep.best.limitDelta * 100)}%</b> ({usd(sweep.best.ltvPerHousehold)} per household).
+              Cutting is worth less than leaving it alone at every setting on this book.
+            </p>
+          </div>
+        )}
         <div className="panel">
           <h3>Household tape</h3>
           <div className="feed">
@@ -195,16 +267,22 @@ export function Workbench({
         <div className="kpi">
           <div className="lbl">Default rate @ 18m</div>
           <div className="num">{pct(lastI?.defaultRate ?? 0)}</div>
-          <div className={`delta ${(lastI?.defaultRate ?? 0) > (lastB?.defaultRate ?? 0) ? "bad" : "good"}`}>
-            {pp((lastI?.defaultRate ?? 0) - (lastB?.defaultRate ?? 0))} vs baseline {pct(lastB?.defaultRate ?? 0)}
-          </div>
+          {eff ? (
+            <EffectDelta e={eff.default} fmt={(n) => pp(n)} goodWhenNegative />
+          ) : (
+            <div className={`delta ${(lastI?.defaultRate ?? 0) > (lastB?.defaultRate ?? 0) ? "bad" : "good"}`}>
+              {pp((lastI?.defaultRate ?? 0) - (lastB?.defaultRate ?? 0))} vs baseline {pct(lastB?.defaultRate ?? 0)}
+            </div>
+          )}
         </div>
         <div className="kpi">
           <div className="lbl">Spend displacement</div>
           <div className="num">{usd(i.displaced)}</div>
-          <div className={`delta ${i.displaced > b.displaced ? "bad" : "good"}`}>
-            {usd(i.displaced - b.displaced)} vs baseline
-          </div>
+          {eff ? (
+            <EffectDelta e={eff.displaced} fmt={(n) => usd(n)} goodWhenNegative />
+          ) : (
+            <div className={`delta ${i.displaced > b.displaced ? "bad" : "good"}`}>{usd(i.displaced - b.displaced)} vs baseline</div>
+          )}
         </div>
         <div className="kpi">
           <div className="lbl">Deposit stock @ 18m</div>
@@ -216,28 +294,34 @@ export function Workbench({
         <div className="kpi">
           <div className="lbl">NIM (18m)</div>
           <div className="num">{usd(i.nim)}</div>
-          <div className={`delta ${i.nim >= b.nim ? "good" : "bad"}`}>{usd(i.nim - b.nim)}</div>
+          {eff ? <EffectDelta e={eff.nim} fmt={(n) => usd(n)} /> : <div className={`delta ${i.nim >= b.nim ? "good" : "bad"}`}>{usd(i.nim - b.nim)}</div>}
         </div>
         <div className="kpi">
           <div className="lbl">Charge-offs</div>
           <div className="num">{usd(i.chargeOffs)}</div>
-          <div className={`delta ${i.chargeOffs > b.chargeOffs ? "bad" : "good"}`}>
-            {usd(i.chargeOffs - b.chargeOffs)}
-          </div>
+          {eff ? (
+            <EffectDelta e={eff.chargeOffs} fmt={(n) => usd(n)} goodWhenNegative />
+          ) : (
+            <div className={`delta ${i.chargeOffs > b.chargeOffs ? "bad" : "good"}`}>{usd(i.chargeOffs - b.chargeOffs)}</div>
+          )}
         </div>
         <div className="kpi">
           <div className="lbl">Cohort LTV / hh</div>
           <div className="num">{usd(lastI?.ltv ?? 0)}</div>
-          <div className={`delta ${(lastI?.ltv ?? 0) >= (lastB?.ltv ?? 0) ? "good" : "bad"}`}>
-            {usd((lastI?.ltv ?? 0) - (lastB?.ltv ?? 0))} vs baseline
-          </div>
+          {eff ? (
+            <EffectDelta e={eff.ltv} fmt={(n) => usd(n)} />
+          ) : (
+            <div className={`delta ${(lastI?.ltv ?? 0) >= (lastB?.ltv ?? 0) ? "good" : "bad"}`}>{usd((lastI?.ltv ?? 0) - (lastB?.ltv ?? 0))} vs baseline</div>
+          )}
         </div>
         <div className="kpi">
           <div className="lbl">Churn @ 18m</div>
           <div className="num">{pct(lastI?.churnRate ?? 0)}</div>
-          <div className={`delta ${(lastI?.churnRate ?? 0) > (lastB?.churnRate ?? 0) ? "bad" : "good"}`}>
-            {pp((lastI?.churnRate ?? 0) - (lastB?.churnRate ?? 0))}
-          </div>
+          {eff ? (
+            <EffectDelta e={eff.churn} fmt={(n) => pp(n)} goodWhenNegative />
+          ) : (
+            <div className={`delta ${(lastI?.churnRate ?? 0) > (lastB?.churnRate ?? 0) ? "bad" : "good"}`}>{pp((lastI?.churnRate ?? 0) - (lastB?.churnRate ?? 0))}</div>
+          )}
         </div>
       </aside>
     </div>

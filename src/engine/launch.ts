@@ -151,46 +151,51 @@ export function simulateLaunch(args: {
 
 /** Largest bonus (to the nearest 5bps) at which the programme still pays for itself. */
 function breakeven(args: { agents: Agent[]; run: SimResult; category: Category; seed: number }): number {
+  // The category mix and savvy of each household do not depend on the bonus, so
+  // resolve them once and let the scan walk a cheap array.
+  const rows = profile(args);
   let lo = 0;
   for (let bps = 5; bps <= 800; bps += 5) {
-    const r = simulateLaunchNet({ ...args, bps });
-    if (r > 0) lo = bps;
+    if (netAt(rows, bps) > 0) lo = bps;
     else break;
   }
   return lo;
 }
 
-/** Net-only evaluation, used by the breakeven scan. Mirrors simulateLaunch. */
-function simulateLaunchNet(args: {
-  agents: Agent[];
-  run: SimResult;
-  category: Category;
-  bps: number;
-  seed: number;
-}): number {
-  const { agents, run, category, bps, seed } = args;
-  const b = bps / 10000;
-  const worthGaming = Math.max(0, b - 0.01);
-  let baseCat = 0;
-  let incremental = 0;
-  let other = 0;
+type Profile = { sc: number; so: number; savvy: number; liquidity: number };
 
+function profile(args: { agents: Agent[]; run: SimResult; category: Category; seed: number }): Profile[] {
+  const { agents, run, category, seed } = args;
+  const rows: Profile[] = [];
   for (const a of agents) {
     const spend = run.cardSpendByAgent.get(a.id) ?? 0;
     if (spend <= 0) continue;
     const mix = mixFor(a, seed);
     const sc = spend * (mix[category] ?? 0);
-    const so = spend - sc;
-    const savvy = clamp(SAVVY[a.segment] + 0.12 * randn(seed, a.id, 0, 91), 0.02, 0.98);
-    const liquidity = clamp(a.cash / Math.max(1, a.burn) / 2, 0, 1);
-    baseCat += sc;
-    incremental += sc * Math.min(0.3, 1.4 * b) * (0.35 + 0.65 * liquidity);
-    other +=
-      so * Math.min(0.2, 1.0 * b) * (0.35 + 0.65 * savvy) +
-      so * Math.min(0.35, 2.2 * worthGaming) * savvy * savvy;
+    rows.push({
+      sc,
+      so: spend - sc,
+      savvy: clamp(SAVVY[a.segment] + 0.12 * randn(seed, a.id, 0, 91), 0.02, 0.98),
+      liquidity: clamp(a.cash / Math.max(1, a.burn) / 2, 0, 1),
+    });
   }
-  const bonusedVolume = baseCat + incremental + other;
-  return incremental * INTERCHANGE - bonusedVolume * b;
+  return rows;
+}
+
+function netAt(rows: Profile[], bps: number): number {
+  const b = bps / 10000;
+  const worthGaming = Math.max(0, b - 0.01);
+  let baseCat = 0;
+  let incremental = 0;
+  let other = 0;
+  for (const r of rows) {
+    baseCat += r.sc;
+    incremental += r.sc * Math.min(0.3, 1.4 * b) * (0.35 + 0.65 * r.liquidity);
+    other +=
+      r.so * Math.min(0.2, 1.0 * b) * (0.35 + 0.65 * r.savvy) +
+      r.so * Math.min(0.35, 2.2 * worthGaming) * r.savvy * r.savvy;
+  }
+  return incremental * INTERCHANGE - (baseCat + incremental + other) * b;
 }
 
 /** Deterministic tie-break helper kept for parity with the rest of the engine. */

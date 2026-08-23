@@ -286,12 +286,17 @@ Priorities: **P0** = MVP (months 0–4), **P1** = months 4–10, **P2** = months
 | FR-044 | P0 | Trace verbosity: `aggregates_only \| sampled_accounts \| full_events`. Full events disallowed above a configurable N×K product. |
 | FR-045 | P0 | Comparison view: treatment vs control, paired paths, ATT-style aggregates with bootstrap CIs. |
 | FR-046 | P1 | Scenario library: reusable macros, policies, attacker packs. |
+| FR-047 | **P0** | **Paired reporting is the default unit of output.** Arms of a path share their shock draws; report the distribution of the *difference*, not the difference of two marginal distributions. The paired interval is materially tighter and is the only one that answers "did the policy do this". |
+| FR-048 | **P0** | **Refuse unresolved effects.** Where an effect's interval contains zero, every surface — UI, API payload, export, chat answer — labels it unresolved and returns the interval instead of a point estimate. No caller may receive a bare number the model cannot defend. |
+| FR-049 | **P0** | **Uncertainty must be decomposed and labelled.** Report shock (aleatoric) and parameter (epistemic) contributions separately. Path-count Monte Carlo alone understates total uncertainty because it conditions on parameters being right; a run whose parameters are uncalibrated must say so on the artifact. |
+| FR-049a | **P0** | **Policy search over a lever.** Sweep one action dimension across its admissible range under constraints and return value at each setting with the optimum marked. Answering "what if" one policy at a time is not sufficient for a decision. |
 
 ### Policy / action interface
 
 | ID | Pri | Requirement |
 | --- | --- | --- |
-| FR-050 | P0 | Declarative policies: line change (absolute, relative, capped), APR change, rewards multiplier by MCC, authorization tightness (decline threshold on utilization or risk), hardship offer. |
+| FR-050 | P0 | Declarative policies: line change (absolute, relative, capped), APR change, rewards multiplier by MCC or merchant category, co-brand launch, authorization tightness (decline threshold on utilization or risk), hardship offer. |
+| FR-050a | **P0** | **Reward-seeking behaviour is part of the dynamics, not a post-hoc adjustment.** Households vary in how hard they work a programme. Any reward action must return the lift decomposed into incremental, cannibalised and gamed volume, the segments that game hardest, and the break-even bonus level. A model whose agents only consume passively will overstate every incentive programme it is asked to evaluate. |
 | FR-051 | P0 | Policy constraints: min/max line, max Δ per cycle, protected-class-blind rule compiler (refuse policies that branch on prohibited bases). |
 | FR-052 | P1 | Gymnasium env wrapping the same kernel. |
 | FR-053 | P2 | Constrained offline RL trainers (CQL / IQL / conservative policy gradient) as a **research job**, watermarked. |
@@ -316,6 +321,8 @@ Priorities: **P0** = MVP (months 0–4), **P1** = months 4–10, **P2** = months
 | FR-073 | P1 | Fairness and constraint dashboard. |
 | FR-074 | P1 | Trace inspector for sampled accounts (event timeline). |
 | FR-075 | P0 | Role-aware UX: MRM sees artifacts; PMs cannot export FCRA fields. |
+| FR-076 | **P0** | **Natural-language query surface** for strategists and rewards managers: a question in English resolves to a scenario the kernel contains, runs it, and answers from that run. Out-of-scope questions are declined with a statement of what the model does contain. |
+| FR-077 | **P0** | **LLM boundary.** A language model may parse the question and word the reply. It may not produce, alter, re-round or interpolate any figure, and it is never in the path between the kernel and a number. The surface must remain functional with the model disconnected, and every answer must be reproducible from its scenario id and seed without it. |
 
 ### Governance
 
@@ -1066,6 +1073,20 @@ A world model is “right enough” when it is **conditionally calibrated** for 
 - If multi-rail or auth-decline logs exist: hit rate on `to_instrument` after decline, Brier score.
 - Else: **no point-estimate gate**; posterior bands required (UC-6).
 
+### Uncertainty that means something
+
+Three sources, and only the first is cheap:
+
+| Source | What it is | How it is obtained | Status in the demo |
+| --- | --- | --- | --- |
+| **Shock (aleatoric)** | The same book living through different luck | Monte Carlo over seeds, arms paired | Implemented — K = 24 |
+| **Parameter (epistemic)** | The hazard and choice coefficients are estimates, not facts | Sample from the fitted posterior alongside the seed | **Not implemented** — coefficients are hand-set, so published intervals are narrower than the truth |
+| **Structural** | The model form itself may be wrong | Challenger kernels; disagreement between them is the honest lower bound | Not implemented |
+
+An interval that reports only the first source, on parameters that were never fitted, is precise about the wrong thing. Until a portfolio is calibrated, every artifact carries that limitation on its face.
+
+**Survivorship in reported rates.** Defaulted and churned households leave the active pool, so a policy that drives attrition can lower a measured rate while helping nobody — an APR increase does exactly this on the reference book, moving default down while churn rises. Rate effects are therefore never reported alone; the pool composition effect ships beside them.
+
 ### Counterfactual validation strategy (true \(Y(0),Y(1)\) unavailable)
 
 1. **Historical policy experiments** — primary gold.
@@ -1304,6 +1325,8 @@ HMMs are too low-capacity for MCC sequences. Diffusion is a poor match to mixed 
 
 | Risk | Sev | Mitigation |
 | --- | --- | --- |
+| **Behavioural coefficients asserted rather than estimated** | Critical | Until fitted to a portfolio, the platform models a *mechanism*, not a book. Intervals cover shock noise only. Fitting and effect-validation against historical line-management and rewards experiments is the first design-partner workstream, ahead of any learned residual. |
+| **Point estimates escaping into decisions** | High | FR-048 refuses unresolved effects at every surface, including exports and the chat answer. |
 | **Weak identification of line-cut effects** (few historical cuts) | High | Partial identification bounds; L1 liquidity mechanism; refuse overconfident UI; seek partner with past line-management experiments. |
 | **No DDA → cash_buffer unidentified** | High | Proxy + wide priors; MVP can still move *card-state* variables (util, min-pay); label limitation. |
 | **MRM rejects learned residual** | High | Ship L1-only as the certified kernel; L2 as challenger; residual shrinkage. |
@@ -1358,6 +1381,8 @@ These are unresolved product decisions; the design does not fake-close them.
 ## Key Decisions
 
 1. **Name: World Model for Banking.** Descriptive rather than coined: it says what the system is, and matches the repository. Earlier working names (Fathom, LedgerWorld) are retired. Revisit before any trademark filing (Open Question 10).
+1a. **Uncertainty is the unit of output.** A world model returns a distribution over futures; a calculator returns a number. The evidential unit is the paired difference between arms sharing shocks, and an effect whose interval straddles zero is reported as unresolved. This is a property of the product, not a reporting preference — it is what stops a single seed being mistaken for a finding.
+1b. **The action space must reach the product, not only the risk lever.** Retail decisions are product decisions — what card, what rewards, what fences — and those are exactly where behaviour, including deliberate gaming, dominates. An action space of limits and rates cannot express the question a rewards manager brings.
 2. **v1 is simulation / decision support only.** No production policy actuation, no adverse action, no `production` status on policies. Rationale: ECOA, SR 11-7, and time-to-trust. RL is an environment consumer, not a launcher.
 3. **Hybrid kernel: frozen L0 ledger + calibrated L1 ABM + L2 event-transformer residual.** Rationale: identities + stress interpretability + data-driven habit; buildable in 4 months without L2, with a path to RSSM later. Rejected pure ABM and pure neural WM for v1.
 4. **Dual-resolution simulation.** Batch: vectorized daily intensities (CPU, 1M×100). High-fidelity: token-level transformer sampling for synthetic export and sampled traces. Rationale: NFR-002 is otherwise infeasible.

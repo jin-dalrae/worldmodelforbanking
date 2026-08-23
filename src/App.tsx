@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { createPopulation } from "./engine/population";
 import { pct } from "./engine/format";
 import { runCounterfactual } from "./engine/simulate";
+import { runPaths, sweepLine } from "./engine/paths";
 import {
   CANONICAL_MACRO,
   CANONICAL_POLICY,
@@ -20,6 +21,7 @@ export type { View };
 const N = 1200;
 const MONTHS = 18;
 const SEED = 7;
+const PATHS = 24;
 const VIEWS: View[] = ["observatory", "workbench", "ask", "anatomy", "ledger"];
 
 function viewFromHash(): View {
@@ -55,6 +57,18 @@ export function App() {
   const pair = useMemo(
     () => runCounterfactual({ agents, months: MONTHS, macro, policy, seed: SEED }),
     [agents, macro, policy],
+  );
+
+  // The single pair drives the lines and keeps dragging responsive; the Monte
+  // Carlo and the sweep are heavier, so they trail the controls by a frame.
+  const slow = useDeferredValue({ agents, macro, policy });
+  const paths = useMemo(
+    () => runPaths({ agents: slow.agents, months: MONTHS, macro: slow.macro, policy: slow.policy, seed: SEED, paths: PATHS }),
+    [slow],
+  );
+  const sweep = useMemo(
+    () => sweepLine({ agents: slow.agents, months: MONTHS, macro: slow.macro, seed: SEED, basePolicy: slow.policy }),
+    [slow],
   );
 
   const lastI = pair.intervention.months.at(-1);
@@ -117,6 +131,9 @@ export function App() {
           months={MONTHS}
           baseline={pair.baseline}
           intervention={pair.intervention}
+          paths={paths}
+          sweep={sweep}
+          pathCount={PATHS}
           onMacro={setMacro}
           onPolicy={setPolicy}
           onCohort={setCohort}
